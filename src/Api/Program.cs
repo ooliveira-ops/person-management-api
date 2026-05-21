@@ -1,51 +1,32 @@
 using Api.Data;
+using Api.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Api.Models;
 
+var builder = WebApplicationBuilder.CreateBuilder(args);
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// add
 builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseSqlite("Data Source=persons.db")); 
+	options.UseSqlite("Data Source=persons.db"));
+
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();          //injeção de dependência: "Sempre que alguém pedir um IPersonRepository, dê uma instância de PersonRepository"
+
+builder.Services.AddControllers();											//registra os controllers
+builder.Services.AddEndpointsApiExplorer();	
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// http:
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.UseAuthorization();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.MapControllers();                                               //mapeia os endpoints dos controllers para que possam ser acessados via HTTP
 
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run(); 
