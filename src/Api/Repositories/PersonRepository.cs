@@ -1,15 +1,14 @@
-﻿using person_management_api.Data;
-using person_management_api.Models;
+﻿using Api.Data;
+using Api.Models;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace person_management_api.Repositories
+namespace Api.Repositories
 {
 	public class PersonRepository : IPersonRepository                               //Implementação concreta do repositório para a entidade Person. Ele utiliza o Entity Framework Core para acessar o banco de dados e realizar as operações de CRUD definidas na interface IPersonRepository.
 	{
 		private readonly AppDbContext _context;
 
-		public Person PersonRepository(AppDbContext context)
+		public PersonRepository(AppDbContext context)
 		{
 			_context = context;                                                 //construtor, que ja vai saberfalar com o database(context)
 		}
@@ -31,7 +30,7 @@ namespace person_management_api.Repositories
 			.ToListAsync();
 		}
 
-		public async Task<List<Person>> SearchAsync(string searchTerm,int pageNumber)                   // resumo: "assinatura do método" para pesquisar pessoas por um termo de busca. Ele inclui a propriedade de navegação "Address" para carregar os detalhes do endereço associado a cada pessoa e utiliza o método Where para filtrar as pessoas com base no termo de busca, verificando se o nome da pessoa ou a cidade ou estado do endereço contêm o termo de busca. Assim como no método GetAllAsync, ele também implementa a lógica de paginação usando os métodos Skip e Take.
+		public async Task<List<Person>> SearchAsync(string searchTerm,int pageNumber, int pageSize = 10)                //resumo: "assinatura do método" para pesquisar pessoas por um termo de busca. Ele inclui a propriedade de navegação "Address" para carregar os detalhes do endereço associado a cada pessoa e utiliza o método Where para filtrar as pessoas com base no termo de busca, verificando se o nome da pessoa ou a cidade ou estado do endereço contêm o termo de busca. Assim como no método GetAllAsync, ele também implementa a lógica de paginação usando os métodos Skip e Take para retornar apenas um subconjunto dos resultados.
 		{
 			return await _context.Persons
 			.Include(p => p.Address)
@@ -43,7 +42,7 @@ namespace person_management_api.Repositories
 			.ToListAsync();
 		}
 
-		public async Task CreacteAsync(Person person)                                                   //resumo: "assinatura do método" para criar uma nova pessoa. Ele utiliza o método AddAsync para adicionar a nova pessoa ao contexto do Entity Framework e, em seguida, chama SaveChangesAsync para salvar as alterações no banco de dados.
+		public async Task CreateAsync(Person person)                                                   //resumo: "assinatura do método" para criar uma nova pessoa. Ele utiliza o método AddAsync para adicionar a nova pessoa ao contexto do Entity Framework e, em seguida, chama SaveChangesAsync para salvar as alterações no banco de dados.
 		{
 			await _context.Persons.AddAsync(person);
 			await _context.SaveChangesAsync();
