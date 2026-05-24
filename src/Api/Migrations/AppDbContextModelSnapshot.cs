@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
-    {
+    partial class AppDbContextModelSnapshot : ModelSnapshot                             //Essa classe é uma representação em código do modelo de dados atual do banco de dados. Ela é usada pelo Entity Framework Core para comparar o modelo atual com o modelo definido nas migrações, permitindo que o EF Core determine quais alterações precisam ser aplicadas ao banco de dados quando uma nova migração for criada ou aplicada.
+	{
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

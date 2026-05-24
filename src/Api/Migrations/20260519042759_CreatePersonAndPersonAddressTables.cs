@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class CreatePersonAndPersonAddressTables : Migration
-    {
+    public partial class CreatePersonAndPersonAddressTables : Migration             //Migração para criar as tabelas Person e PersonAddress no banco de dados. Essa migração define a estrutura das tabelas, incluindo os campos e as relações entre elas, permitindo que o Entity Framework Core crie as tabelas correspondentes no banco de dados quando a migração for aplicada.
+	{
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
