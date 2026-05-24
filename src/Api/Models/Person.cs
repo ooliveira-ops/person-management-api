@@ -2,7 +2,7 @@
 
 namespace Api.Models
 {
-	public class Person
+	public class Person                                                 //(1) Classe de modelo para a entidade Person, que representa uma pessoa com suas propriedades e o relacionamento com a entidade PersonAddress. Ela inclui as propriedades Id, Name, DateOfBirth, AddressId e a propriedade de navegação Address para acessar os detalhes do endereço associado a essa pessoa.
 	{
 		public int Id { get; set; }
 		public string Name { get; set; }
@@ -13,3 +13,4 @@ namespace Api.Models
 		public PersonAddress Address { get; set; }				//"Address" é a propriedade de navegação para acessar os detalhes do endereço associado a essa pessoa
 	}
 }
+								

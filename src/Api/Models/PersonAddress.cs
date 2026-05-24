@@ -3,7 +3,7 @@
 
 namespace Api.Models
 {
-	public class PersonAddress
+	public class PersonAddress                                          //(2) Classe de modelo para a entidade PersonAddress, que representa o endereço de uma pessoa. Ela inclui as propriedades Id, Street, Number, Complement, City, State e Country. Essa classe é usada para armazenar os detalhes do endereço associado a uma pessoa na tabela PersonAddress do banco de dados.
 	{
 		public int Id { get; set; }
 		public string Street { get; set; }

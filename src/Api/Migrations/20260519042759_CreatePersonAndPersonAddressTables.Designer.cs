@@ -12,8 +12,8 @@ namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260519042759_CreatePersonAndPersonAddressTables")]
-    partial class CreatePersonAndPersonAddressTables
-    {
+    partial class CreatePersonAndPersonAddressTables                                                      //Essa classe é uma representação em código da migração específica "CreatePersonAndPersonAddressTables". Ela é usada pelo Entity Framework Core para aplicar as alterações definidas nessa migração ao banco de dados. O método BuildTargetModel é responsável por construir o modelo de dados que representa o estado do banco de dados após a aplicação dessa migração, permitindo que o EF Core saiba como atualizar o banco de dados para refletir as mudanças definidas na migração.
+	{   
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
