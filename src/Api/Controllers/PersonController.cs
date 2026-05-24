@@ -118,6 +118,7 @@ namespace Api.Controllers
 			if (person == null)
 			{
 			return NotFound(new { message = "Person not found" });                                          
+
 			}
 			await _repository.DeleteAsync(id);                                                              
 			return NoContent();                                                                                 //resumo: Retorno de um status HTTP 204 No Content(não há conteúdo), indicando que a operação foi bem-sucedida e a pessoa foi excluída do sistema.

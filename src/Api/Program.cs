@@ -2,7 +2,7 @@ using Api.Data;
 using Api.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplicationBuilder.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 // add
 builder.Services.AddDbContext<AppDbContext>(options =>
