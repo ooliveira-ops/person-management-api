@@ -6,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // add
 builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseSqlite("Data Source=persons.db"));
+	options.UseSqlServer("Server=localhost;Database=PersonManagementApi;User Id=sa;Password=__REMOVED__;TrustServerCertificate=true;")
+);
 
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();          //injeção de dependência: "Sempre que alguém pedir um IPersonRepository, dê uma instância de PersonRepository"
 
