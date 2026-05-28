@@ -13,8 +13,7 @@ namespace Api.DTOs
 		public string? Name { get; set; }                                                   //"?" ex: field(campo) Name: ele pode conter um valor de string ou pode ser null.
 
 		[Required(ErrorMessage = "DateOfBirth is required")]
-		[CustomValidation(typeof(PersonValidator), nameof(PersonValidator.ValidateDateOfBirth),                 //Garante que a data de nascimento seja uma data válida e não seja uma data futura. (pega a classe PersonValidator e o método ValidateDateOfBirth para validar a data de nascimento fornecida)
-		ErrorMessage = "DateOfBirth cannot be in the future")]		
+		[PersonValidator]
 		public DateTime DateOfBirth { get; set; }
 
 		[Required(ErrorMessage = "Address is required")]

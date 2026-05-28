@@ -20,6 +20,11 @@ namespace Api.Controllers
 		[HttpPost]
 		public async Task<ActionResult<PersonResponse>> CreatePerson(CreatePersonRequest request)                   //resumo: Método de ação para criar uma nova pessoa. Ele recebe um DTO de solicitação (CreatePersonRequest) contendo os dados necessários para criar uma pessoa, e retorna um DTO de resposta (PersonResponse) com os detalhes da pessoa criada.
 		{
+			if (request.DateOfBirth > DateTime.Now)
+			{
+				return BadRequest(new { message = "DateOfBirth cannot be in the future" });
+			}
+
 			var address = new PersonAddress                                                                             //resumo: Criação de um objeto PersonAddress a partir dos dados fornecidos no DTO de solicitação. O endereço é construído utilizando as propriedades do DTO, como Street, Number, Complement, City, State e Country. Esse objeto será associado à pessoa que está sendo criada.
 			{
 				Street = request.Address.Street,
@@ -37,7 +42,6 @@ namespace Api.Controllers
 				DateOfBirth = request.DateOfBirth,
 				Address = address
 			};
-
 			await _repository.CreateAsync(person);                                                              //resumo: Chamada ao método CreateAsync do repositório para salvar a nova pessoa no banco de dados. O método é assíncrono, permitindo que a operação de criação seja realizada de forma eficiente sem bloquear o thread principal.
 
 			var response = MapToResponse(person);                                                               //resumo: Mapeamento do objeto Person para um DTO de resposta (PersonResponse) utilizando o método MapToResponse. Esse método converte os dados da pessoa criada em um formato adequado para ser retornado ao cliente, incluindo os detalhes da pessoa e seu endereço.
