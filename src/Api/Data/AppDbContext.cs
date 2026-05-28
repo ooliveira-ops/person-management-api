@@ -23,7 +23,20 @@ namespace Api.Data
 				.HasOne(p => p.Address)															//configura o relacionamento 1 para 1 entre Person e PersonAddress, indicando que cada Person tem um Address
 				.WithOne()																		//configura o outro lado do relacionamento, indicando que cada PersonAddress está associado a um único Person
 				.HasForeignKey<Person>(p => p.AddressId)										//configura a chave estrangeira para o relacionamento, indicando que a propriedade "AddressId" em Person é a chave estrangeira que referencia a tabela PersonAddress
-				.OnDelete(DeleteBehavior.Cascade);												//configura o comportamento de exclusão em cascata, indicando que quando um registro de Person for excluído, o registro correspondente em PersonAddress também será excluído automaticamente
+				.OnDelete(DeleteBehavior.Cascade);                                              //configura o comportamento de exclusão em cascata, indicando que quando um registro de Person for excluído, o registro correspondente em PersonAddress também será excluído automaticamente
+
+
+			modelBuilder.Entity<PersonAddress>()                                                //configurações adicionais para a entidade "PersonAddress"
+			   .Property(p => p.Id)
+			   .ValueGeneratedOnAdd();
+
+
+			// Relacionamento existente										
+			modelBuilder.Entity<Person>()                                                       //configurações adicionais para a entidade "Person"
+				.HasOne(p => p.Address)
+				.WithOne()	
+				.HasForeignKey<Person>(p => p.AddressId)
+				.OnDelete(DeleteBehavior.Cascade);
 		}
 	}
 }

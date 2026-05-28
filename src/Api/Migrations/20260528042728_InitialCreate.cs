@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class CreatePersonAndPersonAddressTables : Migration             //Migração para criar as tabelas Person e PersonAddress no banco de dados. Essa migração define a estrutura das tabelas, incluindo os campos e as relações entre elas, permitindo que o Entity Framework Core crie as tabelas correspondentes no banco de dados quando a migração for aplicada.
-	{
+    public partial class InitialCreate : Migration
+    {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,14 +15,14 @@ namespace Api.Migrations
                 name: "PersonAddresses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Street = table.Column<string>(type: "TEXT", nullable: false),
-                    Number = table.Column<string>(type: "TEXT", nullable: false),
-                    Complement = table.Column<string>(type: "TEXT", nullable: false),
-                    City = table.Column<string>(type: "TEXT", nullable: false),
-                    State = table.Column<string>(type: "TEXT", nullable: false),
-                    Country = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Number = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Complement = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    State = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -33,11 +33,11 @@ namespace Api.Migrations
                 name: "Persons",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    AddressId = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    AddressId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
