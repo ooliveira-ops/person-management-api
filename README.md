@@ -515,7 +515,7 @@ curl -X DELETE http://localhost:5164/api/Persons/1
 ## 📞 Contato e Suporte
 
 **Estagiário:** Filipe Oliveira  
-**Período do Projeto:** 21 de Maio - 2 de Junho de 2026  
+**Período do Projeto:** 11 de Maio - 2 de Junho de 2026  
 **Supervisor:** Rafa
 
 ---
@@ -526,5 +526,5 @@ Este projeto é para fins educacionais e de avaliação.
 
 ---
 
-**Última Atualização:** 28 de Maio de 2026 - 02:50 AM  
+**Última Atualização:** 28 de Maio de 2026 - 01:40 AM  
 **Status:** 🟢 Funcionalidades Principais Concluídas | 🟡 Fase de Testes e Refinamento
