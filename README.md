@@ -1,143 +1,141 @@
-# Person Management API 👥
+# API de Gerenciamento de Pessoas 👥
 
-**Status:** 🟢 In Development (Core features completed)  
-**Last Updated:** May 28, 2026  
-**Delivery Date:** June 2, 2026
-
----
-
-## 📋 Project Overview
-
-A RESTful Web API built with **ASP.NET Core 8** for managing people and their addresses. The API demonstrates professional software architecture patterns, clean code practices, and comprehensive database integration.
-
-**Purpose:** Technical assessment to evaluate code organization, best practices, API design, and developer understanding of the implementation.
+**Status:** 🟢 Em Desenvolvimento (Funcionalidades principais concluídas)  
+**Última Atualização:** 28 de Maio de 2026  
+**Data de Entrega:** 2 de Junho de 2026
 
 ---
 
-## 🛠️ Tech Stack
+## 📋 Visão Geral do Projeto
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
+Uma API Web RESTful construída com **ASP.NET Core 8** para gerenciar pessoas e seus endereços. A API demonstra padrões profissionais de arquitetura de software, boas práticas de código e integração abrangente com banco de dados.
+
+**Propósito:** Avaliação técnica para validar organização do código, boas práticas, design de API e compreensão do desenvolvedor sobre a implementação.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+| Tecnologia | Versão | Propósito |
+|------------|--------|----------|
 | **.NET** | 8.0 | Framework |
 | **ASP.NET Core** | 8.0 | Web API |
-| **Entity Framework Core** | 8.0 | ORM (Object-Relational Mapping) |
-| **SQL Server** | 2019+ | Database |
-| **Swagger/OpenAPI** | 6.6.2 | API Documentation & Testing |
-| **C#** | 12 | Language |
+| **Entity Framework Core** | 8.0 | ORM (Mapeamento Relacional de Objetos) |
+| **SQL Server** | 2019+ | Banco de Dados |
+| **Swagger/OpenAPI** | 6.6.2 | Documentação & Testes da API |
+| **C#** | 12 | Linguagem |
 
 ---
 
-## 🏗️ Project Structure
+## 🏗️ Estrutura do Projeto
 
 ```
 person-management-api/
 ├── src/
 │   └── Api/
 │       ├── Controllers/
-│       │   └── PersonsController.cs          # HTTP endpoints for CRUD operations
+│       │   └── PersonsController.cs          # Endpoints HTTP para operações CRUD
 │       ├── Data/
-│       │   └── AppDbContext.cs               # Entity Framework DbContext configuration
+│       │   └── AppDbContext.cs               # Configuração do DbContext do EF Core
 │       ├── DTOs/
-│       │   ├── CreatePersonRequest.cs        # Data Transfer Object for creating person
-│       │   ├── UpdatePersonRequest.cs        # Data Transfer Object for updating person
-│       │   ├── PersonResponse.cs             # Data Transfer Object for API response
-│       │   ├── AddressResponseDto.cs         # Address response DTO
-│       │   ├── CreateAddressDto.cs           # Address creation DTO
-│       │   └── UpdateAddressDto.cs           # Address update DTO
+│       │   ├── CreatePersonRequest.cs        # DTO para criar pessoa
+│       │   ├── UpdatePersonRequest.cs        # DTO para atualizar pessoa
+│       │   ├── PersonResponse.cs             # DTO de resposta da API
+│       │   ├── AddressResponseDto.cs         # DTO de resposta de endereço
+│       │   ├── CreateAddressDto.cs           # DTO para criar endereço
+│       │   └── UpdateAddressDto.cs           # DTO para atualizar endereço
 │       ├── Models/
-│       │   ├── Person.cs                     # Person entity model
-│       │   └── PersonAddress.cs              # PersonAddress entity model
+│       │   ├── Person.cs                     # Modelo de entidade Person
+│       │   └── PersonAddress.cs              # Modelo de entidade PersonAddress
 │       ├── Repositories/
-│       │   ├── IPersonRepository.cs          # Repository interface (contract)
-│       │   └── PersonRepository.cs           # Repository implementation (data access)
+│       │   ├── IPersonRepository.cs          # Interface do repositório (contrato)
+│       │   └── PersonRepository.cs           # Implementação do repositório (acesso a dados)
 │       ├── Validators/
-│       │   └── PersonValidator.cs            # Custom validation for DateOfBirth
+│       │   └── PersonValidator.cs            # Validação customizada para DateOfBirth
 │       ├── Migrations/
-│       │   └── [Migration files]             # Database schema history
-│       ├── Program.cs                        # Application startup & configuration
-│       ├── Api.csproj                        # Project file with NuGet references
-│       ├── appsettings.json                  # Application settings
-│       └── persons.db                        # SQLite database (development)
+│       │   └── [Arquivos de migration]       # Histórico de schema do banco de dados
+│       ├── Program.cs                        # Startup e configuração da aplicação
+│       ├── Api.csproj                        # Arquivo do projeto com referências NuGet
+│       ├── appsettings.json                  # Configurações da aplicação
+│       └── persons.db                        # Banco SQLite (desenvolvimento)
 ├── .gitignore
-└── README.md                                  # This file
+└── README.md                                  # Este arquivo
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Como Começar
 
-### Prerequisites
+### Pré-requisitos
 
-- **.NET 8 SDK** installed ([Download](https://dotnet.microsoft.com/download/dotnet/8.0))
-- **SQL Server** 2019+ or **SQL Server Express** ([Download](https://www.microsoft.com/pt-br/sql-server/sql-server-editions-express))
-- **Visual Studio 2022** or **VS Code** with C# extension
+- **.NET 8 SDK** instalado ([Baixar](https://dotnet.microsoft.com/download/dotnet/8.0))
+- **SQL Server** 2019+ ou **SQL Server Express** ([Baixar](https://www.microsoft.com/pt-br/sql-server/sql-server-editions-express))
+- **Visual Studio 2022** ou **VS Code** com extensão C#
 
-### Installation
+### Instalação
 
-#### 1. Clone the Repository
+#### 1. Clonar o Repositório
 
 ```bash
 git clone https://github.com/filipeoliveira-ops/person-management-api.git
 cd person-management-api
+cd src/Api
 ```
 
-#### 2. Restore Dependencies
+#### 2. Restaurar Dependências
 
 ```bash
 dotnet restore
 ```
 
-#### 3. Configure Database Connection
+#### 3. Configurar Conexão com o Banco de Dados
 
-Edit `src/Api/appsettings.json`:
+Edite `Program.cs` e configure a string de conexão:
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=PersonManagementApi;User Id=sa;Password=your_password;TrustServerCertificate=true;"
-  }
-}
+```csharp
+builder.Services.AddDbContext<AppDbContext>(options =>
+	options.UseSqlServer("Server=localhost;Database=PersonManagementApi;User Id=sa;Password=sua_senha;TrustServerCertificate=true;")
+);
 ```
 
-**Replace:**
-- `your_password` with your SQL Server `sa` password
+**Substitua:**
+- `sua_senha` pela senha do usuário `sa` do SQL Server
 
-#### 4. Create Database & Apply Migrations
+#### 4. Criar o Banco de Dados e Aplicar Migrações
 
 ```bash
-cd src/Api
 dotnet ef database update
 ```
 
-This command:
-- ✅ Creates the `PersonManagementApi` database
-- ✅ Creates `Persons` table
-- ✅ Creates `PersonAddresses` table
-- ✅ Sets up relationships and constraints
+Este comando:
+- ✅ Cria o banco de dados `PersonManagementApi`
+- ✅ Cria tabela `Persons`
+- ✅ Cria tabela `PersonAddresses`
+- ✅ Configura relacionamentos e constraints
 
-#### 5. Run the Application
+#### 5. Executar a Aplicação
 
 ```bash
 dotnet run
 ```
 
-**Expected output:**
+**Saída esperada:**
 ```
 info: Microsoft.Hosting.Lifetime[14]
       Now listening on: http://localhost:5164
       https://localhost:7087
 ```
 
-#### 6. Access Swagger UI
+#### 6. Acessar Swagger UI
 
-Open your browser: **http://localhost:5164/swagger**
+Abra no navegador: **http://localhost:5164/swagger**
 
 ---
 
-## 📚 API Endpoints
+## 📚 Endpoints da API
 
-### 1. Create a New Person
-**Request:**
+### 1. Criar uma Nova Pessoa
+**Requisição:**
 ```
 POST /api/Persons
 Content-Type: application/json
@@ -154,12 +152,12 @@ Content-Type: application/json
     "complement": "Apt 45",
     "city": "São Paulo",
     "state": "SP",
-    "country": "Brazil"
+    "country": "Brasil"
   }
 }
 ```
 
-**Response:** `201 Created`
+**Resposta:** `201 Created`
 ```json
 {
   "id": 1,
@@ -172,65 +170,65 @@ Content-Type: application/json
     "complement": "Apt 45",
     "city": "São Paulo",
     "state": "SP",
-    "country": "Brazil"
+    "country": "Brasil"
   }
 }
 ```
 
 ---
 
-### 2. Get All Persons (with Pagination)
-**Request:**
+### 2. Listar Todas as Pessoas (com Paginação)
+**Requisição:**
 ```
 GET /api/Persons?page=1&pageSize=10&search=
 ```
 
-**Response:** `200 OK`
+**Resposta:** `200 OK`
 ```json
 [
   {
     "id": 1,
     "name": "João Silva",
     "dateOfBirth": "1990-05-15T00:00:00",
-    "address": { /* address object */ }
+    "address": { /* objeto de endereço */ }
   }
 ]
 ```
 
-**Query Parameters:**
-- `page` (optional, default: 1) - Page number for pagination
-- `pageSize` (optional, default: 10) - Items per page
-- `search` (optional) - Search by name, city, or state
+**Parâmetros de Query:**
+- `page` (opcional, padrão: 1) - Número da página
+- `pageSize` (opcional, padrão: 10) - Itens por página
+- `search` (opcional) - Buscar por nome, cidade ou estado
 
 ---
 
-### 3. Get Person by ID
-**Request:**
+### 3. Obter Pessoa por ID
+**Requisição:**
 ```
 GET /api/Persons/{id}
 ```
 
-**Response:** `200 OK`
+**Resposta:** `200 OK`
 ```json
 {
   "id": 1,
   "name": "João Silva",
   "dateOfBirth": "1990-05-15T00:00:00",
-  "address": { /* address object */ }
+  "address": { /* objeto de endereço */ }
 }
 ```
 
-**Error Response:** `404 Not Found`
+**Resposta de Erro:** `404 Not Found`
 ```json
 {
-  "message": "Person not found"
+  "message": "Pessoa não encontrada"
 }
 ```
 
 ---
 
-### 4. Update a Person
-**Request:**
+### 4. Atualizar uma Pessoa
+**Requisição:**
 ```
 PUT /api/Persons/{id}
 Content-Type: application/json
@@ -247,75 +245,75 @@ Content-Type: application/json
     "complement": "Apt 20",
     "city": "Rio de Janeiro",
     "state": "RJ",
-    "country": "Brazil"
+    "country": "Brasil"
   }
 }
 ```
 
-**Response:** `200 OK`
+**Resposta:** `200 OK`
 
 ---
 
-### 5. Delete a Person
-**Request:**
+### 5. Deletar uma Pessoa
+**Requisição:**
 ```
 DELETE /api/Persons/{id}
 ```
 
-**Response:** `204 No Content` (success, no body)
+**Resposta:** `204 No Content` (sucesso, sem corpo)
 
-**Error Response:** `404 Not Found`
+**Resposta de Erro:** `404 Not Found`
 
 ---
 
-## 🏛️ Architecture & Design Patterns
+## 🏛️ Arquitetura e Padrões de Design
 
 ### Repository Pattern
-The application uses the **Repository Pattern** to abstract data access logic:
+A aplicação utiliza o **Repository Pattern** para abstrair a lógica de acesso a dados:
 
 ```
-Controller → IPersonRepository (interface) → PersonRepository (implementation) → DbContext → SQL Server
+Controller → IPersonRepository (interface) → PersonRepository (implementação) → DbContext → SQL Server
 ```
 
-**Benefits:**
-- ✅ Separates business logic from data access logic
-- ✅ Makes testing easier (can mock the repository)
-- ✅ Easier to change database providers (SQLite → SQL Server)
-- ✅ Centralized data access methods
+**Benefícios:**
+- ✅ Separa lógica de negócio da lógica de acesso a dados
+- ✅ Facilita testes (pode mockear o repositório)
+- ✅ Mais fácil mudar provedores de banco (SQLite → SQL Server)
+- ✅ Centraliza métodos de acesso a dados
 
 ### Data Transfer Objects (DTOs)
-DTOs are used for API requests/responses:
-- `CreatePersonRequest` - Request body for POST
-- `UpdatePersonRequest` - Request body for PUT
-- `PersonResponse` - Response body for GET
-- `AddressResponseDto` - Nested address in response
+DTOs são usados em requisições/respostas da API:
+- `CreatePersonRequest` - Body de requisição para POST
+- `UpdatePersonRequest` - Body de requisição para PUT
+- `PersonResponse` - Body de resposta para GET
+- `AddressResponseDto` - Endereço aninhado na resposta
 
-**Benefits:**
-- ✅ Decouples API contracts from database models
-- ✅ Validation happens at API layer
-- ✅ Security (never expose all entity properties)
+**Benefícios:**
+- ✅ Desacopla contratos da API de modelos de banco de dados
+- ✅ Validação ocorre na camada de API
+- ✅ Segurança (nunca expõe todas as propriedades da entidade)
 
-### Entity Models
-- `Person` - Core entity with Id, Name, DateOfBirth, AddressId
-- `PersonAddress` - Address entity with street, number, city, state, country
-- **Relationship:** One-to-One (Person has one Address)
+### Modelos de Entidade
+- `Person` - Entidade principal com Id, Name, DateOfBirth, AddressId
+- `PersonAddress` - Entidade de endereço com street, number, city, state, country
+- **Relacionamento:** Um-para-Um (Person tem um Address)
 
-### Dependency Injection
-All services are registered in `Program.cs`:
+### Injeção de Dependência
+Todos os serviços são registrados em `Program.cs`:
 ```csharp
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 ```
 
-When a controller needs `IPersonRepository`, the framework automatically provides `PersonRepository` instance.
+Quando um controller precisa de `IPersonRepository`, o framework automaticamente fornece uma instância de `PersonRepository`.
 
 ---
 
-## ✅ Validations Implemented
+## ✅ Validações Implementadas
 
-### 1. DateOfBirth Validation
+### 1. Validação de DateOfBirth
 ```csharp
 if (request.DateOfBirth > DateTime.Now)
-    return BadRequest(new { message = "DateOfBirth cannot be in the future" });
+    return BadRequest(new { message = "DateOfBirth não pode ser no futuro" });
 ```
 
 ### 2. Data Annotations
@@ -325,7 +323,7 @@ if (request.DateOfBirth > DateTime.Now)
 public string Name { get; set; }
 ```
 
-### 3. Custom Validator
+### 3. Validador Customizado
 ```csharp
 [PersonValidator]
 public DateTime DateOfBirth { get; set; }
@@ -333,20 +331,20 @@ public DateTime DateOfBirth { get; set; }
 
 ---
 
-## 📊 Database Schema
+## 📊 Schema do Banco de Dados
 
-### Persons Table
-| Column | Type | Constraints |
-|--------|------|-------------|
-| Id | INT | Primary Key, Auto-increment |
+### Tabela Persons
+| Coluna | Tipo | Restrições |
+|--------|------|-----------|
+| Id | INT | Chave Primária, Auto-incremento |
 | Name | NVARCHAR(MAX) | NOT NULL |
 | DateOfBirth | DATETIME | NOT NULL |
-| AddressId | INT | Foreign Key |
+| AddressId | INT | Chave Estrangeira |
 
-### PersonAddresses Table
-| Column | Type | Constraints |
-|--------|------|-------------|
-| Id | INT | Primary Key, Auto-increment |
+### Tabela PersonAddresses
+| Coluna | Tipo | Restrições |
+|--------|------|-----------|
+| Id | INT | Chave Primária, Auto-incremento |
 | Street | NVARCHAR(MAX) | NOT NULL |
 | Number | NVARCHAR(MAX) | NOT NULL |
 | Complement | NVARCHAR(MAX) | Nullable |
@@ -354,15 +352,15 @@ public DateTime DateOfBirth { get; set; }
 | State | NVARCHAR(MAX) | NOT NULL |
 | Country | NVARCHAR(MAX) | NOT NULL |
 
-**Relationships:**
-- Person → PersonAddress: One-to-One
-- ON DELETE: Cascade (deleting a Person also deletes its Address)
+**Relacionamentos:**
+- Person → PersonAddress: Um-para-Um
+- ON DELETE: Cascade (deletar uma Person também deleta seu Address)
 
 ---
 
-## 📈 Git Commits History
+## 📈 Histórico de Commits
 
-All commits follow the format: `type: description`
+Todos os commits seguem o formato: `type: description`
 
 ```
 ✅ chore: initialize Web API project with folder structure
@@ -376,77 +374,78 @@ All commits follow the format: `type: description`
 ✅ feat: test all CRUD endpoints on Swagger - all working correctly
 ✅ feat: configure SQL Server connection and apply migrations
 ✅ fix: resolve database schema issues and fix autoincrement configuration
+✅ docs: add comprehensive README with API documentation and setup guide
 ```
 
 ---
 
-## ✨ What's Completed
+## ✨ O Que Foi Concluído
 
-### Phase 1: Project Setup ✅
-- [x] Project initialization with proper folder structure
-- [x] Models (Person, PersonAddress) with relationships
-- [x] Entity Framework Core DbContext configuration
+### Fase 1: Setup do Projeto ✅
+- [x] Inicialização do projeto com estrutura de pastas apropriada
+- [x] Modelos (Person, PersonAddress) com relacionamentos
+- [x] Configuração do Entity Framework Core DbContext
 
-### Phase 2: Data Access Layer ✅
-- [x] Repository Pattern implementation (IPersonRepository, PersonRepository)
-- [x] Database migrations with SQL Server
-- [x] CRUD operations (Create, Read, Update, Delete)
-- [x] Pagination support in GET All endpoint
-- [x] Search functionality (by name, city, state)
+### Fase 2: Camada de Acesso a Dados ✅
+- [x] Implementação do Repository Pattern (IPersonRepository, PersonRepository)
+- [x] Migrações de banco de dados com SQL Server
+- [x] Operações CRUD (Criar, Ler, Atualizar, Deletar)
+- [x] Suporte de paginação no endpoint GET All
+- [x] Funcionalidade de busca (por nome, cidade, estado)
 
-### Phase 3: API Layer ✅
-- [x] 5 REST endpoints implemented
-- [x] DTOs for request/response
-- [x] Input validation (Required, MinLength, Custom)
-- [x] Error handling (404, 400, 500)
-- [x] HTTP status codes (201, 200, 204, 400, 404)
-- [x] Swagger integration for API documentation
+### Fase 3: Camada de API ✅
+- [x] 5 endpoints REST implementados
+- [x] DTOs para requisição/resposta
+- [x] Validação de entrada (Required, MinLength, Customizada)
+- [x] Tratamento de erros (404, 400, 500)
+- [x] Status codes HTTP (201, 200, 204, 400, 404)
+- [x] Integração do Swagger para documentação da API
 
-### Phase 4: Testing & Verification ✅
-- [x] All endpoints tested in Swagger
-- [x] Database connectivity verified
-- [x] Data persistence confirmed
+### Fase 4: Testes e Verificação ✅
+- [x] Todos os endpoints testados no Swagger
+- [x] Conectividade do banco de dados verificada
+- [x] Persistência de dados confirmada
 
 ---
 
-## 📋 Remaining Work (TODO)
+## 📋 Trabalho Pendente (TODO)
 
-### High Priority
-- [ ] **Unit Tests** - Xunit tests for Repository and Controller
-  - EstimatedTime: 2-3 hours
-  - Tests needed: GetByIdAsync, GetAllAsync, CreateAsync, UpdateAsync, DeleteAsync
+### Alta Prioridade
+- [ ] **Testes Unitários** - Testes Xunit para Repository e Controller
+  - Tempo Estimado: 2-3 horas
+  - Testes necessários: GetByIdAsync, GetAllAsync, CreateAsync, UpdateAsync, DeleteAsync
 
-### Medium Priority
-- [ ] **FluentValidation** - Replace Data Annotations with FluentValidation
-  - EstimatedTime: 1-2 hours
-  - Benefits: More powerful validation rules, centralized validation
+### Média Prioridade
+- [ ] **FluentValidation** - Substituir Data Annotations por FluentValidation
+  - Tempo Estimado: 1-2 horas
+  - Benefícios: Regras de validação mais poderosas, validação centralizada
 
-- [ ] **Standardized Response** - Implement ApiResponse wrapper
-  - EstimatedTime: 1 hour
-  - Includes: Success/error status, data, error messages
+- [ ] **Resposta Padronizada** - Implementar wrapper ApiResponse
+  - Tempo Estimado: 1 hora
+  - Inclui: Status de sucesso/erro, dados, mensagens de erro
 
 ### Nice to Have
-- [ ] **Pagination DTO** - Dedicated pagination response object
-- [ ] **Global Exception Handler** - Middleware for exception handling
-- [ ] **Logging** - Serilog integration
-- [ ] **CORS** - Cross-Origin Resource Sharing configuration
-- [ ] **API Versioning** - Support for multiple API versions
+- [ ] **DTO de Paginação** - Objeto de resposta de paginação dedicado
+- [ ] **Exception Handler Global** - Middleware para tratamento de exceções
+- [ ] **Logging** - Integração Serilog
+- [ ] **CORS** - Configuração de Cross-Origin Resource Sharing
+- [ ] **Versionamento de API** - Suporte para múltiplas versões da API
 
 ---
 
-## 🧪 Testing the API
+## 🧪 Testando a API
 
-### Using Swagger UI (Recommended)
-1. Run the application: `dotnet run`
-2. Open browser: http://localhost:5164/swagger
-3. Click on any endpoint
-4. Click "Try it out"
-5. Fill in the request body
-6. Click "Execute"
+### Usando Swagger UI (Recomendado)
+1. Execute a aplicação: `dotnet run`
+2. Abra no navegador: http://localhost:5164/swagger
+3. Clique em qualquer endpoint
+4. Clique em "Try it out"
+5. Preencha o body da requisição
+6. Clique em "Execute"
 
-### Using cURL
+### Usando cURL
 ```bash
-# Create a person
+# Criar uma pessoa
 curl -X POST http://localhost:5164/api/Persons \
   -H "Content-Type: application/json" \
   -d '{
@@ -457,75 +456,75 @@ curl -X POST http://localhost:5164/api/Persons \
       "number": "789",
       "city": "Brasília",
       "state": "DF",
-      "country": "Brazil"
+      "country": "Brasil"
     }
   }'
 
-# Get all persons
+# Obter todas as pessoas
 curl http://localhost:5164/api/Persons
 
-# Get person by ID
+# Obter pessoa por ID
 curl http://localhost:5164/api/Persons/1
 
-# Update a person
+# Atualizar uma pessoa
 curl -X PUT http://localhost:5164/api/Persons/1 \
   -H "Content-Type: application/json" \
   -d '{"name": "Maria Santos", ...}'
 
-# Delete a person
+# Deletar uma pessoa
 curl -X DELETE http://localhost:5164/api/Persons/1
 ```
 
 ---
 
-## 🐛 Troubleshooting
+## 🐛 Solução de Problemas
 
-### Issue: "Cannot connect to database"
-**Solution:** 
-- Verify SQL Server is running
-- Check connection string in `appsettings.json`
-- Confirm database credentials (User Id, Password)
-- Run `dotnet ef database update` to create database
+### Problema: "Não consegue conectar ao banco de dados"
+**Solução:** 
+- Verifique se SQL Server está rodando
+- Confira a string de conexão em `Program.cs`
+- Confirme as credenciais do banco (User Id, Password)
+- Execute `dotnet ef database update` para criar o banco
 
-### Issue: "DateOfBirth cannot be in the future"
-**Solution:**
-- Use a past date for DateOfBirth
-- Format: YYYY-MM-DD
+### Problema: "DateOfBirth não pode ser no futuro"
+**Solução:**
+- Use uma data no passado para DateOfBirth
+- Formato: YYYY-MM-DD
 
-### Issue: "Person not found (404)"
-**Solution:**
-- Verify the ID exists in database
-- Check SQL Server Management Studio
-
----
-
-## 📚 Key Concepts Learned
-
-1. **Repository Pattern** - Data access abstraction
-2. **Dependency Injection** - ASP.NET Core DI container
-3. **Entity Framework Core** - ORM for database operations
-4. **DTOs** - Decoupling API contracts from entities
-5. **Async/Await** - Non-blocking database operations
-6. **RESTful API Design** - HTTP methods, status codes, resource naming
-7. **Validations** - Data annotations and custom validators
-8. **Database Migrations** - Version control for schema changes
-9. **Swagger/OpenAPI** - API documentation and testing
+### Problema: "Pessoa não encontrada (404)"
+**Solução:**
+- Verifique se o ID existe no banco de dados
+- Consulte SQL Server Management Studio
 
 ---
 
-## 📞 Contact & Support
+## 📚 Conceitos-Chave Aprendidos
 
-**Intern:** Filipe Oliveira  
-**Project Date:** May 21 - June 2, 2026  
-**Supervisor:** [Supervisor Name]
+1. **Repository Pattern** - Abstração de acesso a dados
+2. **Injeção de Dependência** - Contenedor de DI do ASP.NET Core
+3. **Entity Framework Core** - ORM para operações de banco de dados
+4. **DTOs** - Desacoplamento de contratos de API de entidades
+5. **Async/Await** - Operações de banco de dados não-bloqueantes
+6. **Design de API RESTful** - Métodos HTTP, status codes, nomenclatura de recursos
+7. **Validações** - Data annotations e validadores customizados
+8. **Database Migrations** - Controle de versão para mudanças de schema
+9. **Swagger/OpenAPI** - Documentação e testes de API
 
 ---
 
-## 📄 License
+## 📞 Contato e Suporte
 
-This project is for educational and assessment purposes.
+**Estagiário:** Filipe Oliveira  
+**Período do Projeto:** 11 de Maio - 2 de Junho de 2026  
+**Supervisor:** Rafa
 
 ---
 
-**Last Updated:** May 28, 2026 - 02:50 AM  
-**Status:** 🟢 Core Features Complete | 🟡 Testing & Refinement Phase
+## 📄 Licença
+
+Este projeto é para fins educacionais e de avaliação.
+
+---
+
+**Última Atualização:** 28 de Maio de 2026 - 01:40 AM  
+**Status:** 🟢 Funcionalidades Principais Concluídas | 🟡 Fase de Testes e Refinamento
