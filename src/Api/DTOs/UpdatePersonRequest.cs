@@ -12,7 +12,7 @@ namespace Api.DTOs
 
 		[Required(ErrorMessage = "DateOfBirth is required")]
 		public DateTime DateOfBirth { get; set; }
-
+		
 		[Required(ErrorMessage = "Address is required")]																	//Campo Address é obrigatório para a atualização, pois os dados de endereço também precisam ser fornecidos para atualizar a pessoa.
 		public UpdateAddressDto? Address { get; set; }
 	}
