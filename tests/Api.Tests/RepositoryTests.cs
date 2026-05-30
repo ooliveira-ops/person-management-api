@@ -10,7 +10,7 @@ namespace Api.Tests
 	public class PersonRepositoryTests
 	{
 		[Fact]
-		public async Task GetByIdAsync_ShouldReturnPerson_WhenPersonExists()                //"GetByIdAsync"(nome do método testado) - "ShouldReturnPerson"(Deve retornar pessoa) - "WhenPersonExists"(Quando a pessoa existe)
+		public async Task GetByIdAsync_ShouldReturnPerson_WhenPersonExists()										 //"GetByIdAsync"(nome do método testado) - "ShouldReturnPerson"(Deve retornar pessoa) - "WhenPersonExists"(Quando a pessoa existe)
 		{
 			// "arrange" (prepração)
 			var mockRepository = new Mock<IPersonRepository>();
@@ -21,14 +21,14 @@ namespace Api.Tests
 				DateOfBirth = new DateTime(1990, 5, 15),
 			};
 
-			mockRepository.Setup(repo => repo.GetByIdAsync(1))                                  // Configura o comportamento do método GetByIdAsync para retornar a pessoa quando o ID for 1
-			.ReturnsAsync(person);                                                              // Chama o método GetByIdAsync do repositório simulado para obter a pessoa com ID 1
+			mockRepository.Setup(repo => repo.GetByIdAsync(1))													// Configura o comportamento do método GetByIdAsync para retornar a pessoa quando o ID for 1
+			.ReturnsAsync(person);																					// Chama o método GetByIdAsync do repositório simulado para obter a pessoa com ID 1
 
-			// "act"	(ação)																		// Chama o método GetByIdAsync do repositório simulado para obter a pessoa com ID 1
+			// "act"	(ação)		"await = aguarda/espera a reposta"																// Chama o método GetByIdAsync do repositório simulado para obter a pessoa com ID 1
 			var result = await mockRepository.Object.GetByIdAsync(1);
 
-			// "assert"	(verificação)																		// resumo: Verifica se o resultado não é nulo, se o nome da pessoa é "João Silva" e se o ID é 1, garantindo que o método GetByIdAsync retorna os dados corretos para a pessoa solicitada.
-			result.Should().NotBeNull();
+			// "assert"	(verificação)																				// resumo: Verifica se o resultado não é nulo, se o nome da pessoa é "João Silva" e se o ID é 1, garantindo que o método GetByIdAsync retorna os dados corretos para a pessoa solicitada.
+			result.Should().NotBeNull();			
 			result.Name.Should().Be("João Silva");
 			result.Id.Should().Be(1);
 		}
@@ -36,10 +36,10 @@ namespace Api.Tests
 
 
 		[Fact]
-		public async Task CreateAsync_ShouldCreatePerson_WhenValidProvided()                        //"CreateAsync"(nome do método testado) - "ShouldCreatePerson"(Deve criar pessoa) - "WhenValidProvided"(Quando os dados válidos são fornecidos)
+		public async Task CreateAsync_ShouldCreatePerson_WhenValidProvided()											 //"CreateAsync"(nome do método testado) - "ShouldCreatePerson"(Deve criar pessoa) - "WhenValidProvided"(Quando os dados válidos são fornecidos)
 		{
 			//"arrange" 
-			var mockRepository = new Mock<IPersonRepository>();                                     //cria o fake do repositório
+			var mockRepository = new Mock<IPersonRepository>();															  //cria o fake do repositório
 			var person = new Person
 			{
 				Id = 1,
@@ -51,7 +51,7 @@ namespace Api.Tests
 			await mockRepository.Object.CreateAsync(person);
 
 			//assert
-			mockRepository.Verify(r => r.CreateAsync(It.IsAny<Person>()), Times.Once);                  //"CreateAsync"(nome do método testado) - "It.IsAny<Person>()"(Verifica se o método CreateAsync foi chamado com qualquer objeto do tipo Person) - "Times.Once"(Verifica se o método foi chamado exatamente uma vez)
+			mockRepository.Verify(r => r.CreateAsync(It.IsAny<Person>()), Times.Once);									 //"CreateAsync"(nome do método testado) - "It.IsAny<Person>()"(Verifica se o método CreateAsync foi chamado com qualquer objeto do tipo Person) - "Times.Once"(Verifica se o método foi chamado exatamente uma vez)
 		}
 
 
@@ -75,5 +75,19 @@ namespace Api.Tests
 			//"assert"
 			mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Person>()), Times.Once);                 
 		}
+
+
+		[Fact]
+		public async Task DeleteAsync_ShouldDeletePerson_WhenValidIdProvided()
+		{
+
+			var mockRepository = new Mock<IPersonRepository>();
+			int personIdToDelete = 1;
+
+			await mockRepository.Object.DeleteAsync(personIdToDelete);
+
+			mockRepository.Verify(r => r.DeleteAsync(personIdToDelete), Times.Once);
+		}
+
 	}	
 }
