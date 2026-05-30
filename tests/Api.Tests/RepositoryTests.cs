@@ -33,6 +33,8 @@ namespace Api.Tests
 			result.Id.Should().Be(1);
 		}
 
+
+
 		[Fact]
 		public async Task CreateAsync_ShouldCreatePerson_WhenValidProvided()                        //"CreateAsync"(nome do método testado) - "ShouldCreatePerson"(Deve criar pessoa) - "WhenValidProvided"(Quando os dados válidos são fornecidos)
 		{
@@ -52,5 +54,26 @@ namespace Api.Tests
 			mockRepository.Verify(r => r.CreateAsync(It.IsAny<Person>()), Times.Once);                  //"CreateAsync"(nome do método testado) - "It.IsAny<Person>()"(Verifica se o método CreateAsync foi chamado com qualquer objeto do tipo Person) - "Times.Once"(Verifica se o método foi chamado exatamente uma vez)
 		}
 
+
+
+		[Fact]
+		public async Task UpdateAsync_ShouldUptadePerson_WhenValidDataProvied()
+		{
+
+			//"arrange"
+			var mockRepository = new Mock<IPersonRepository>();
+			var updatedPerson = new Person
+			{ 
+				Id = 1,
+				Name = "João Silva Atualizado",
+				DateOfBirth = new DateTime(1990, 5, 15)
+			};
+
+			//"act"
+			await mockRepository.Object.UpdateAsync(updatedPerson);
+
+			//"assert"
+			mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Person>()), Times.Once);                 
+		}
 	}	
 }
