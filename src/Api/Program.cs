@@ -1,6 +1,9 @@
 using Api.Data;
 using Api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
+using Api.Models;
+using Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();          //injeção de dependência: "Sempre que alguém pedir um IPersonRepository, dê uma instância de PersonRepository"
+builder.Services.AddScoped<IValidator<Person>, PersonValidator>();
 
 builder.Services.AddControllers();											//registra os controllers
 builder.Services.AddEndpointsApiExplorer();	
