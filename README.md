@@ -1,7 +1,7 @@
 # API de Gerenciamento de Pessoas 👥
 
-**Status:** 🟢 Em Desenvolvimento (Funcionalidades principais concluídas)  
-**Última Atualização:** 28 de Maio de 2026  
+**Status:** 🟢 Concluído  
+**Última Atualização:** 31 de Maio de 2026  
 **Data de Entrega:** 2 de Junho de 2026
 
 ---
@@ -310,24 +310,18 @@ Quando um controller precisa de `IPersonRepository`, o framework automaticamente
 
 ## ✅ Validações Implementadas
 
-### 1. Validação de DateOfBirth
-```csharp
-if (request.DateOfBirth > DateTime.Now)
-    return BadRequest(new { message = "DateOfBirth não pode ser no futuro" });
-```
+### FluentValidation (PersonValidator)
+- **Name**: obrigatório + mínimo 3 caracteres
+- **DateOfBirth**: não pode ser data futura
 
-### 2. Data Annotations
-```csharp
-[Required]
-[MinLength(3)]
-public string Name { get; set; }
-```
+### Data Annotations (DTOs)
+- **Name**: obrigatório + mínimo 3 caracteres
+- **DateOfBirth**: obrigatório
+- **Address**: obrigatório
+- **Street, Number, City, State, Country**: obrigatórios
 
-### 3. Validador Customizado
-```csharp
-[PersonValidator]
-public DateTime DateOfBirth { get; set; }
-```
+### Validação no Controller
+- `DateOfBirth > DateTime.Now` → retorna HTTP 400 com ApiResponse de erro
 
 ---
 
@@ -364,17 +358,15 @@ Todos os commits seguem o formato: `type: description`
 
 ```
 ✅ chore: initialize Web API project with folder structure
-✅ chore: create project folder structure
 ✅ feat: create Person and PersonAddress models
 ✅ feat: create AppDbContext with EF Core configuration
-✅ feat: create initial database migration and apply to SQLite
 ✅ feat: implement repository pattern with PersonRepository
-✅ feat: add data annotations validation to DTOs
-✅ feat: implement controllers, DTOs, and validators with fixes
-✅ feat: test all CRUD endpoints on Swagger - all working correctly
-✅ feat: configure SQL Server connection and apply migrations
-✅ fix: resolve database schema issues and fix autoincrement configuration
-✅ docs: add comprehensive README with API documentation and setup guide
+✅ feat: add DTOs and implement all CRUD endpoints
+✅ feat: configure SQL Server and apply migrations
+✅ feat: add FluentValidation for Person entity
+✅ feat: add unit tests for PersonRepository (5 tests)
+✅ feat: add ApiResponse wrapper and apply to all endpoints
+✅ docs: update README with complete project documentation
 ```
 
 ---
@@ -382,54 +374,32 @@ Todos os commits seguem o formato: `type: description`
 ## ✨ O Que Foi Concluído
 
 ### Fase 1: Setup do Projeto ✅
-- [x] Inicialização do projeto com estrutura de pastas apropriada
 - [x] Modelos (Person, PersonAddress) com relacionamentos
 - [x] Configuração do Entity Framework Core DbContext
 
 ### Fase 2: Camada de Acesso a Dados ✅
-- [x] Implementação do Repository Pattern (IPersonRepository, PersonRepository)
-- [x] Migrações de banco de dados com SQL Server
-- [x] Operações CRUD (Criar, Ler, Atualizar, Deletar)
-- [x] Suporte de paginação no endpoint GET All
-- [x] Funcionalidade de busca (por nome, cidade, estado)
+- [x] Repository Pattern (IPersonRepository, PersonRepository)
+- [x] Migrações com SQL Server
+- [x] CRUD completo com paginação e busca
 
 ### Fase 3: Camada de API ✅
 - [x] 5 endpoints REST implementados
 - [x] DTOs para requisição/resposta
-- [x] Validação de entrada (Required, MinLength, Customizada)
-- [x] Tratamento de erros (404, 400, 500)
-- [x] Status codes HTTP (201, 200, 204, 400, 404)
-- [x] Integração do Swagger para documentação da API
+- [x] Swagger configurado
 
-### Fase 4: Testes e Verificação ✅
-- [x] Todos os endpoints testados no Swagger
-- [x] Conectividade do banco de dados verificada
-- [x] Persistência de dados confirmada
+### Fase 4: Qualidade e Boas Práticas ✅
+- [x] FluentValidation para Person
+- [x] ApiResponse padronizado em todos os endpoints
+- [x] 5 testes unitários (xUnit + Moq + FluentAssertions)
 
 ---
 
-## 📋 Trabalho Pendente (TODO)
+## 📋 Melhorias Futuras
 
-### Alta Prioridade
-- [ ] **Testes Unitários** - Testes Xunit para Repository e Controller
-  - Tempo Estimado: 2-3 horas
-  - Testes necessários: GetByIdAsync, GetAllAsync, CreateAsync, UpdateAsync, DeleteAsync
-
-### Média Prioridade
-- [ ] **FluentValidation** - Substituir Data Annotations por FluentValidation
-  - Tempo Estimado: 1-2 horas
-  - Benefícios: Regras de validação mais poderosas, validação centralizada
-
-- [ ] **Resposta Padronizada** - Implementar wrapper ApiResponse
-  - Tempo Estimado: 1 hora
-  - Inclui: Status de sucesso/erro, dados, mensagens de erro
-
-### Nice to Have
-- [ ] **DTO de Paginação** - Objeto de resposta de paginação dedicado
-- [ ] **Exception Handler Global** - Middleware para tratamento de exceções
-- [ ] **Logging** - Integração Serilog
-- [ ] **CORS** - Configuração de Cross-Origin Resource Sharing
-- [ ] **Versionamento de API** - Suporte para múltiplas versões da API
+- **Frontend React** - Interface visual para consumir os endpoints da API
+- **Docker** - Containerizar a aplicação junto com o SQL Server
+- **CORS** - Configuração de Cross-Origin Resource Sharing para o frontend
+- **Logging** - Integração com Serilog para rastreamento de erros em produção
 
 ---
 
@@ -443,7 +413,7 @@ Todos os commits seguem o formato: `type: description`
 5. Preencha o body da requisição
 6. Clique em "Execute"
 
-### Usando cURL
+### Usando URL
 ```bash
 # Criar uma pessoa
 curl -X POST http://localhost:5164/api/Persons \
@@ -512,13 +482,6 @@ curl -X DELETE http://localhost:5164/api/Persons/1
 
 ---
 
-## 📞 Contato e Suporte
-
-**Estagiário:** Filipe Oliveira  
-**Período do Projeto:** 11 de Maio - 2 de Junho de 2026  
-**Supervisor:** Rafa
-
----
 
 ## 📄 Licença
 
@@ -526,5 +489,5 @@ Este projeto é para fins educacionais e de avaliação.
 
 ---
 
-**Última Atualização:** 28 de Maio de 2026 - 01:40 AM  
-**Status:** 🟢 Funcionalidades Principais Concluídas | 🟡 Fase de Testes e Refinamento
+**Última Atualização:** 31 de Maio de 2026  
+**Status:** 🟢 Concluído
