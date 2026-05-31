@@ -26,6 +26,7 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
+	app.MapGet("/", () => Results.Redirect("/swagger"));                        //ele vai abrir direto a interface do Swagger quando acessar a raiz da aplicação
 }
 
 app.UseHttpsRedirection();
