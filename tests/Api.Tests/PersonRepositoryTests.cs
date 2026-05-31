@@ -7,7 +7,7 @@ using Api.Models;
 
 namespace Api.Tests
 {
-	public class PersonRepositoryTests
+	public class PersonRepositoryTests 
 	{
 		[Fact]
 		public async Task GetByIdAsync_ShouldReturnPerson_WhenPersonExists()										 //"GetByIdAsync"(nome do método testado) - "ShouldReturnPerson"(Deve retornar pessoa) - "WhenPersonExists"(Quando a pessoa existe)
@@ -89,5 +89,28 @@ namespace Api.Tests
 			mockRepository.Verify(r => r.DeleteAsync(personIdToDelete), Times.Once);
 		}
 
+
+		[Fact]
+		public async Task SearchAsync_ShouldReturnFilteredPersons_WhenSearchTermProvided()
+		{
+			var mockRepository = new Mock<IPersonRepository>();
+			var persons = new List<Person>																		//persons = um objeto que representa 'uma lista'
+			{
+				new Person { Id = 1, Name = "João Silva", DateOfBirth = new DateTime(1990, 5, 15) },
+				new Person { Id = 2, Name = "Maria Silva", DateOfBirth = new DateTime(1995, 3, 20) }
+			};
+
+			mockRepository
+			.Setup(repo => repo.SearchAsync("Silva", 1, 10))                                                    //ele vai buscar nomes com "Silva" e retornar a lista de pessoas que tem "Silva" no nome, com paginação (1ª página, 10 itens por página)	
+				.ReturnsAsync(persons);                                                                         //após a busca, ele retorna essas 2 pessoas.
+
+			//"act"
+			var result = await mockRepository.Object.SearchAsync("Silva", 1, 10);                               //vai chamar com o termo "Silva" e a paginação (1ª página, 10 itens por página)
+
+
+			result.Should().NotBeEmpty();
+			result.Should().HaveCount(2);                                                                       //"havecount" tradução = "ter contagem", ou seja, verifica se a contagem de itens no resultado é igual a 2.
+			result.Should().Contain(p => p.Name.Contains("Silva"));                                              //verifica se o resultado contém pelo menos um item onde o nome da pessoa contém a palavra "Silva"
+		}
 	}	
 }

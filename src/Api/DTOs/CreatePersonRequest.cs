@@ -13,7 +13,6 @@ namespace Api.DTOs
 		public string? Name { get; set; }                                                   //"?" ex: field(campo) Name: ele pode conter um valor de string ou pode ser null.
 
 		[Required(ErrorMessage = "DateOfBirth is required")]
-		[PersonValidator]
 		public DateTime DateOfBirth { get; set; }
 
 		[Required(ErrorMessage = "Address is required")]
