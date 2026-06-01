@@ -1,10 +1,10 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;                   //importações//C# : "Vou usar o Entity Framework Core para criar um contexto de banco de dados"
-using Api.Models;                                   //importações//C# : "Vou usar as classes de modelo Person e PersonAddress(em Api.Models) para definir as entidades do banco de dados"
+using Microsoft.EntityFrameworkCore;																		    //importações//C# : "Vou usar o Entity Framework Core para criar um contexto de banco de dados"
+using Api.Models;																								  //importações//C# : "Vou usar as classes de modelo Person e PersonAddress(em Api.Models) para definir as entidades do banco de dados"
 
 namespace Api.Data
 {
-	public class AppDbContext : DbContext													//recebendo "poderes" para falar com o banco de dados
+	public class AppDbContext : DbContext													//DbContext da a classe o "poder" para falar com o banco de dados
 	{
 		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)         //Dbcon.. options = recebe as conf / base(options) = passa as conf para a classe base (DbContext)
 		{
@@ -28,15 +28,7 @@ namespace Api.Data
 
 			modelBuilder.Entity<PersonAddress>()                                                //configurações adicionais para a entidade "PersonAddress"
 			   .Property(p => p.Id)
-			   .ValueGeneratedOnAdd();
-
-
-			// Relacionamento existente										
-			modelBuilder.Entity<Person>()                                                       //configurações adicionais para a entidade "Person"
-				.HasOne(p => p.Address)
-				.WithOne()	
-				.HasForeignKey<Person>(p => p.AddressId)
-				.OnDelete(DeleteBehavior.Cascade);
+			   .ValueGeneratedOnAdd();															
 		}
 	}
 }
