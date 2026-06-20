@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs
 {
+				//dados que o cliente manda ao atualizar uma pessoa
 	public class UpdatePersonRequest										//(5) DTO de requisição para atualizar os dados de uma pessoa, incluindo seu endereço. Ele é semelhante ao CreatePersonRequest, mas pode ser usado para atualizar os dados existentes.
 	{
 

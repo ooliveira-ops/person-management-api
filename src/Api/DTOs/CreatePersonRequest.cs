@@ -4,8 +4,8 @@ using Api.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs
-{
-	public class CreatePersonRequest													//(4) DTO de solicitação para criar uma pessoa
+{               //dados que o cliente manda ao criar uma pessoa
+	public class CreatePersonRequest														//(4) DTO de solicitação para criar uma pessoa
 	{
 
 		[Required(ErrorMessage = "Name is required")]										//"nome é necessário"

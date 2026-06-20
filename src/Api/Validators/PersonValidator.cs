@@ -3,9 +3,9 @@ using Api.Models;
 using FluentValidation;
 
 namespace Api.Validators
-{
+{													
 	public class PersonValidator : AbstractValidator<Person>                                                //resumo: "PersonValidator" é uma classe de validação que herda de AbstractValidator<Person>, fornecida pela biblioteca FluentValidation. Ela define as regras de validação para a entidade Person, garantindo que os dados sejam válidos antes de serem processados ou armazenados no banco de dados.
-	{
+	{           //Usa FluentValidation para definir as regras de validação da entidade
 		public PersonValidator()                                                                            //Construtor da classe PersonValidator, onde as regras de validação são definidas para as propriedades da entidade Person.
 		{
 			RuleFor(x => x.Name)                                                                            // Define a regra de validação para a propriedade "Name" da entidade Person. Ela especifica que o nome não pode ser vazio e deve ter pelo menos 3 caracteres. Se a validação falhar, a mensagem "Name must be at least 3 characters" será retornada.

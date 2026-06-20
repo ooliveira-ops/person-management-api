@@ -2,7 +2,7 @@
 using Api.DTOs;
 
 namespace Api.DTOs
-{
+{               //dados que a API devolve ao cliente (do mét MapToResponse)
 	public class PersonResponse												//(3) DTO de resposta para a entidade Person, que inclui os dados da pessoa e seu endereço
 	{
 		public int Id { get; set; }
