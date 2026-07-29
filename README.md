@@ -1,4 +1,4 @@
-# API de Gerenciamento de Pessoas 👥
+# API de Gerenciamento de Pessoas 
 
 **Status:** 🟢 Concluído  
 **Última Atualização:** 31 de Maio de 2026  
