@@ -296,6 +296,25 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# Bancos SQLite locais (ex: src/Api/persons.db) - dados de desenvolvimento,
+# nao pertencem ao repositorio
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Segredos e configuracao local.
+# A connection string de desenvolvimento fica em appsettings.Development.json e usa
+# Trusted_Connection (sem senha), por isso segue versionada. Para conexoes com senha,
+# use "dotnet user-secrets" ou variavel de ambiente - nunca um arquivo commitado.
+# Ver a secao "3. Configurar Conexao com o Banco de Dados" no README.
+appsettings.Production.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.key
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
@@ -408,7 +427,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # VS Code files for those working on multiple tools
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
