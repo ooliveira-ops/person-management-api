@@ -1,16 +1,19 @@
-﻿using System;
+using System;
 using Api.DTOs;
 using Api.Validators;
 using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs
-{               //dados que o cliente manda ao criar uma pessoa
-	public class CreatePersonRequest														//(4) DTO de solicitação para criar uma pessoa
+{
+	// Corpo esperado no POST /api/Persons.
+	// DTO separado da entidade Person de propósito: o cliente não envia Id nem escolhe
+	// chaves, e as regras de entrada podem mudar sem mexer no modelo do banco.
+	// As Data Annotations abaixo são verificadas pelo [ApiController] antes do controller rodar.
+	public class CreatePersonRequest
 	{
-
-		[Required(ErrorMessage = "Name is required")]										//"nome é necessário"
+		[Required(ErrorMessage = "Name is required")]
 		[MinLength(3, ErrorMessage = "Name must have at least 3 characters")]
-		public string? Name { get; set; }                                                   //"?" ex: field(campo) Name: ele pode conter um valor de string ou pode ser null.
+		public string? Name { get; set; }
 
 		[Required(ErrorMessage = "DateOfBirth is required")]
 		public DateTime DateOfBirth { get; set; }
@@ -19,18 +22,20 @@ namespace Api.DTOs
 		public CreateAddressDto? Address { get; set; }
 	}
 
-	public class CreateAddressDto                                                       //DTO de solicitação para criar um endereço, utilizado dentro do CreatePersonRequest para representar os dados de endereço associados à pessoa que está sendo criada.
+	// Endereço aninhado no corpo do POST.
+	public class CreateAddressDto
 	{
-		
-		[Required(ErrorMessage = "Street is required")]		
-		public string? Street { get; set; }                                             
+		[Required(ErrorMessage = "Street is required")]
+		public string? Street { get; set; }
 
 		[Required(ErrorMessage = "Number is required")]
 		public string? Number { get; set; }
 
-		//este era opcnional, então não tem o "[Required]"
+		// Sem [Required]: o complemento é opcional. A coluna correspondente no banco
+		// também aceita NULL — as duas pontas precisam concordar, ou um POST sem
+		// complement falha na gravação.
 		public string? Complement { get; set; }
-		
+
 		[Required(ErrorMessage = "City is required")]
 		public string? City { get; set; }
 

@@ -1,17 +1,19 @@
-﻿using System;
-
+using System;
 
 namespace Api.Response
-{               //garante que toda resposta tenha o mesmo formato
+{
+	// Envelope padrão de toda resposta da API. Garante que sucesso e erro tenham o mesmo
+	// formato, para o cliente checar sempre "success" em vez de adivinhar pelo status code.
+	// <T> é o tipo do payload: uma pessoa, uma lista de pessoas, o que o endpoint devolver.
 	public class ApiResponse<T>
 	{
 		public bool Success { get; set; }
-		public string? Message { get; set; }													//"?" = 'pode ser nulo'
-		public T? Data { get; set; }                                             //"T" que vai receber os dados de resposta, seja uma pessoa, uma lista de pessoas ou qualquer outro tipo de dado que a API possa retornar. Ele é definido como um tipo genérico para permitir flexibilidade na estrutura da resposta, permitindo que diferentes tipos de dados sejam retornados dependendo do contexto da solicitação.
+		public string? Message { get; set; }
+		public T? Data { get; set; }
 
-
-																												//"static" Pode ser chamado sem instanciar a classe. Ex resumido: ApiResponse<string>.SuccessResponse("Data loaded successfully"); )
-		public static ApiResponse<T> SuccessResponse(T data, string message = "Operation successful")               //"Método para retorno uma resposta de sucesso
+		// Fábricas estáticas: chamadas sem instanciar a classe, como
+		// ApiResponse<PersonResponse>.SuccessResponse(pessoa).
+		public static ApiResponse<T> SuccessResponse(T data, string message = "Operation successful")
 		{
 			return new ApiResponse<T>
 			{
@@ -21,14 +23,14 @@ namespace Api.Response
 			};
 		}
 
-
-		public static ApiResponse<T> ErrorResponse(string message)                                             //"Método para retornar uma resposta de erro
+		public static ApiResponse<T> ErrorResponse(string message)
 		{
 			return new ApiResponse<T>
 			{
 				Success = false,
 				Message = message,
-				Data = default(T)                                                                               //"default(T)" resumo: Retorna o valor padrão para o tipo T. Se T for um tipo de referência, isso será null. Se T for um tipo de valor, como int ou bool, isso retornará 0 ou false, respectivamente. Isso é útil para indicar que não há dados válidos a serem retornados em caso de erro.
+				// default(T) é null para tipos de referência e 0/false para tipos de valor.
+				Data = default(T)
 			};
 		}
 	}

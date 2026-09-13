@@ -1,16 +1,23 @@
-﻿using System;
+using System;
 using Api.DTOs;
 
 namespace Api.DTOs
-{               //dados que a API devolve ao cliente (do mét MapToResponse)
-	public class PersonResponse												//(3) DTO de resposta para a entidade Person, que inclui os dados da pessoa e seu endereço
+{
+	// Formato de saída da API, produzido por PersonsController.MapToResponse.
+	// Diferente da entidade Person, não tem navegação de volta para o endereço-pai,
+	// o que evita referência circular na serialização JSON.
+	public class PersonResponse
 	{
 		public int Id { get; set; }
 		public string? Name { get; set; }
 		public DateTime DateOfBirth { get; set; }
+
+		// Anulável: pessoas sem endereço cadastrado saem com "address": null.
 		public AddressResponseDto? Address { get; set; }
 	}
-	public class AddressResponseDto                                         //DTO de resposta para a entidade Address, utilizado dentro do PersonResponse para representar os dados de endereço associados à pessoa que está sendo retornada.
+
+	// Endereço aninhado na resposta.
+	public class AddressResponseDto
 	{
 		public int Id { get; set; }
 		public string? Street { get; set; }

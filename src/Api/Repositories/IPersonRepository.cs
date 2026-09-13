@@ -1,9 +1,11 @@
-﻿using Api.Models;
+using Api.Models;
 
 namespace Api.Repositories
-{		//"contrato"
-	public interface IPersonRepository                                     // Interface: define o "o que" fazer de para acessar os dados relacionados à entidade Person. Ela inclui métodos para obter uma pessoa por ID, obter todas as pessoas com paginação, pesquisar pessoas por um termo de busca, criar, atualizar e excluir pessoas. A implementação concreta dessa interface será responsável por fornecer a lógica específica para acessar o banco de dados usando o Entity Framework Core ou qualquer outra tecnologia de acesso a dados.
-
+{
+	// Contrato de acesso a dados de Person: define O QUE pode ser feito, sem dizer como.
+	// O controller depende desta interface, não da implementação — é o que permite trocar
+	// o banco por outro provider e mockar o repositório nos testes de controller.
+	public interface IPersonRepository
 	{
 		Task<Person> GetByIdAsync(int id);
 		Task<List<Person>> GetAllAsync(int pageNumber = 1, int pageSize = 10);
@@ -13,4 +15,3 @@ namespace Api.Repositories
 		Task DeleteAsync(int id);
 	}
 }
-
