@@ -1,109 +1,149 @@
-﻿using System;
+using System;
 using Api.DTOs;
 using Api.Models;
 using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Api.Response;
-
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using FluentValidation;
 
 namespace Api.Controllers
 {
+	// Endpoints REST de Person. O controller não conhece o banco: recebe DTOs, converte
+	// para entidades, delega ao repositório e devolve tudo embrulhado em ApiResponse.
+	//
+	// [ApiController] valida as Data Annotations dos DTOs automaticamente e devolve 400
+	// antes de o método executar — por isso não há checagem manual de campos obrigatórios.
 	[ApiController]
 	[Route("api/[controller]")]
-	public class PersonsController : ControllerBase                                                                 //(6) Controlador para gerenciar as operações relacionadas à entidade Person. Ele utiliza os DTOs de solicitação e resposta para receber e enviar dados, e interage com o repositório para realizar as operações de CRUD.
-	{	//campo externo
-		private readonly IPersonRepository _repository;                                                              //O repositório é injetado através do construtor, permitindo que o controlador acesse os métodos de acesso a dados definidos na interface IPersonRepository.
+	public class PersonsController : ControllerBase
+	{
+		private readonly IPersonRepository _repository;
+		private readonly IValidator<Person> _validator;
 
-		public PersonsController(IPersonRepository repository)
+		// Repositório e validador chegam prontos pela injeção de dependência (Program.cs).
+		public PersonsController(IPersonRepository repository, IValidator<Person> validator)
 		{
-			_repository = repository;                                                                                // O construtor recebe uma instância do repositório, que é fornecida pelo mecanismo de injeção de dependência do ASP.NET Core. Isso permite que o controlador utilize o repositório para realizar as operações necessárias.
+			_repository = repository;
+			_validator = validator;
 		}
-		//recebendo as dep. do repo
 
-		//atributo de rota
-		[HttpPost]		//tarefa que..											//obj recebido do mét. / parâmetros
-		public async Task<ActionResult<ApiResponse<PersonResponse>>> CreatePerson(CreatePersonRequest request)                   //resumo: Método de ação para criar uma nova pessoa. Ele recebe um DTO de solicitação (CreatePersonRequest) contendo os dados necessários para criar uma pessoa, e retorna um DTO de resposta (PersonResponse) com os detalhes da pessoa criada.
+		// Roda as regras do PersonValidator sobre a entidade e devolve as mensagens de erro
+		// agregadas, ou null se estiver tudo certo.
+		//
+		// Centralizar aqui garante que POST e PUT apliquem exatamente as mesmas regras:
+		// antes, a checagem de data futura era feita à mão só no POST, e o PUT aceitava
+		// uma data de nascimento no futuro.
+		private async Task<string?> ValidateAsync(Person person)
 		{
-			if (request.DateOfBirth > DateTime.Now)
-			{                                                                                                               //"BadRequest" = pedido mal formatado, ou seja, o cliente enviou dados que não fazem sentido (nascimento no futuro). O método retorna um status HTTP 400 Bad Request com uma mensagem de erro encapsulada em um objeto ApiResponse de erro.
-				return BadRequest(ApiResponse<PersonResponse>.ErrorResponse("DateOfBirth cannot be in the future"));
+			var result = await _validator.ValidateAsync(person);
+			if (result.IsValid)
+			{
+				return null;
 			}
+			return string.Join("; ", result.Errors.Select(e => e.ErrorMessage));
+		}
 
-			var address = new PersonAddress                                                                             //resumo: Criação de um objeto PersonAddress a partir dos dados fornecidos no DTO de solicitação. O endereço é construído utilizando as propriedades do DTO, como Street, Number, Complement, City, State e Country. Esse objeto será associado à pessoa que está sendo criada.
+		[HttpPost]
+		public async Task<ActionResult<ApiResponse<PersonResponse>>> CreatePerson(CreatePersonRequest request)
+		{
+			var address = new PersonAddress
 			{
 				Street = request.Address.Street,
 				Number = request.Address.Number,
-				Complement = request.Address.Complement,
+				Complement = request.Address.Complement,	// pode ser null: campo opcional
 				City = request.Address.City,
 				State = request.Address.State,
 				Country = request.Address.Country
 			};
 
-
-			var person = new Person																											 //resumo: Criação de um objeto Person utilizando os dados fornecidos no DTO de solicitação. O objeto Person é construído com as propriedades Name, DateOfBirth e o endereço criado anteriormente. Esse objeto representa a pessoa que será criada no sistema.
+			var person = new Person
 			{
 				Name = request.Name,
 				DateOfBirth = request.DateOfBirth,
-				Address = address
-			};   //após ex. a operação no banco de d.
-			await _repository.CreateAsync(person);																												//resumo: Chamada ao método CreateAsync do repositório para salvar a nova pessoa no banco de dados. O método é assíncrono, permitindo que a operação de criação seja realizada de forma eficiente sem bloquear o thread principal.
-							//converter em um DTO de saída
-			var response = MapToResponse(person);																							 //resumo: Mapeamento do objeto Person para um DTO de resposta (PersonResponse) utilizando o método MapToResponse. Esse método converte os dados da pessoa criada em um formato adequado para ser retornado ao cliente, incluindo os detalhes da pessoa e seu endereço.
-			return CreatedAtAction(nameof(GetPersonById), new { id = person.Id }, ApiResponse<PersonResponse>.SuccessResponse(response, "Person created successfully"));    //Retorno do PersonResponse criado embrulhado no Response Padronizado (HTTP 201)
-		}       //recebe um 201 Created e criado.
+				Address = address		// o EF grava pessoa e endereço na mesma operação
+			};
 
+			// Regras de negócio (data não futura, tamanho do nome) antes de tocar no banco.
+			var erro = await ValidateAsync(person);
+			if (erro != null)
+			{
+				return BadRequest(ApiResponse<PersonResponse>.ErrorResponse(erro));
+			}
 
+			await _repository.CreateAsync(person);
+
+			var response = MapToResponse(person);
+			// CreatedAtAction devolve 201 e inclui no header Location a URL do novo recurso.
+			return CreatedAtAction(nameof(GetPersonById), new { id = person.Id }, ApiResponse<PersonResponse>.SuccessResponse(response, "Person created successfully"));
+		}
 
 
 		[HttpGet("{id}")]
-		public async Task<ActionResult<ApiResponse<PersonResponse>>> GetPersonById(int id)																	//resumo: Método de ação para obter uma pessoa por ID. Ele recebe um parâmetro de rota (id) e retorna um DTO de resposta (PersonResponse) contendo os detalhes da pessoa correspondente ao ID fornecido.
+		public async Task<ActionResult<ApiResponse<PersonResponse>>> GetPersonById(int id)
 		{
-			var person = await _repository.GetByIdAsync(id);																				 //resumo: Chamada ao método GetByIdAsync do repositório para recuperar a pessoa do banco de dados com base no ID fornecido. O método é assíncrono, permitindo que a operação de recuperação seja realizada de forma eficiente sem bloquear o thread principal.
+			var person = await _repository.GetByIdAsync(id);
 			if (person == null)
 			{
-				return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));													 //resumo: Verificação se a pessoa foi encontrada. Se o objeto person for nulo, significa que não existe uma pessoa com o ID fornecido, e o método retorna um status HTTP 404 Not Found com a mensagem de não encontrada encapsulada em um objeto ApiResponse de erro.
+				return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));
 			}
-			var response = MapToResponse(person);																								 //resumo: Mapeamento do objeto Person para um DTO de resposta (PersonResponse) utilizando o método MapToResponse. Esse método converte os dados da pessoa recuperada em um formato adequado para ser retornado ao cliente, incluindo os detalhes da pessoa e seu endereço.
-			return Ok(ApiResponse<PersonResponse>.SuccessResponse(response));																		//Retorno do PersonResponse embrulhado no Response Padronizado (HTTP 200)
+			var response = MapToResponse(person);
+			return Ok(ApiResponse<PersonResponse>.SuccessResponse(response));
 		}
 
 
-				
-		[HttpGet]																	 //obj recebido do mét. / parâmetros
-		public async Task<ActionResult<ApiResponse<List<PersonResponse>>>> GetPersons([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string search = null)     //resumo: Método de ação para obter uma lista de pessoas com suporte à paginação e filtragem por nome. Ele recebe parâmetros de consulta (page, pageSize e name) e retorna uma lista de DTOs de resposta (PersonResponse) contendo os detalhes das pessoas que correspondem aos critérios fornecidos.
+		// Lista paginada, com busca opcional por nome, cidade ou estado.
+		// page e pageSize não são validados aqui: quem normaliza é o PersonRepository,
+		// para que a proteção valha em qualquer chamador, não só neste endpoint.
+		[HttpGet]
+		public async Task<ActionResult<ApiResponse<List<PersonResponse>>>> GetPersons([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string search = null)
 		{
-			List<Person> persons;                                                                                                   //Declara uma lista vazia (ainda sem dados)
+			List<Person> persons;
 
-
-			if (!string.IsNullOrEmpty(search))                                                                                  //"SE o search NÃO for vazio (ou seja, SE o usuário digitou algo pra buscar)"
+			if (!string.IsNullOrEmpty(search))
 			{
-				persons = await _repository.SearchAsync(search, page, pageSize);												//"persons recebe apenas as pessoas que contém o termo buscado"
+				persons = await _repository.SearchAsync(search, page, pageSize);
 			}
-			else                                                                                                                //"SENÃO (usuário não digitou nada pra buscar)"
+			else
 			{
-				persons = await _repository.GetAllAsync(page, pageSize);                                                           //"persons recebe TODAS as pessoas (com paginação)"
+				persons = await _repository.GetAllAsync(page, pageSize);
 			}
 
-			var response = persons.Select(MapToResponse).ToList();                                                               //Pega a lista persons (seja do if ou do else) e converte cada Person em PersonResponse usando o MapToResponse (que é um método do Controller mesmo, não do DTO!)
-			return Ok(ApiResponse<List<PersonResponse>>.SuccessResponse(response));                                              //Retorno da lista de PersonResponse embrulhada no Response Padronizado (HTTP 200)
+			var response = persons.Select(MapToResponse).ToList();
+			return Ok(ApiResponse<List<PersonResponse>>.SuccessResponse(response));
 		}
 
 
-
-		[HttpPut("{id}")]                                                       //obj recebido do mét. / parâmetros
-		public async Task<ActionResult<ApiResponse<PersonResponse>>> UpdatePerson(int id, UpdatePersonRequest request)                   //resumo: Método de ação para atualizar os detalhes de uma pessoa existente. Ele recebe um parâmetro de rota (id) e um DTO de solicitação (UpdatePersonRequest) contendo os dados atualizados da pessoa, e retorna um DTO de resposta (PersonResponse) com os detalhes da pessoa atualizada.
+		[HttpPut("{id}")]
+		public async Task<ActionResult<ApiResponse<PersonResponse>>> UpdatePerson(int id, UpdatePersonRequest request)
 		{
-			var person = await _repository.GetByIdAsync(id);                                                    //resumo: Chamada ao método GetByIdAsync do repositório para recuperar a pessoa do banco de dados com base no ID fornecido. O método é assíncrono, permitindo que a operação de recuperação seja realizada de forma eficiente sem bloquear o thread principal.
+			// Busca a entidade rastreada pelo EF e altera os campos nela: assim o
+			// SaveChangesAsync do repositório gera um UPDATE só do que mudou.
+			var person = await _repository.GetByIdAsync(id);
 			if (person == null)
 			{
-				return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));                                          //resumo: ApiResponse<PersonResponse> → Usando nosso wrapper -- .ErrorResponse("Person not found") → Cria resposta com: {success: false, message: "Person not found", data: null }
+				return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));
 			}
+
+			// Valida os dados recebidos ANTES de alterar a entidade rastreada pelo EF:
+			// assim uma requisição inválida não deixa mudanças pendentes no contexto.
+			var candidato = new Person
+			{
+				Name = request.Name,
+				DateOfBirth = request.DateOfBirth
+			};
+			var erro = await ValidateAsync(candidato);
+			if (erro != null)
+			{
+				return BadRequest(ApiResponse<PersonResponse>.ErrorResponse(erro));
+			}
+
 			person.Name = request.Name;
 			person.DateOfBirth = request.DateOfBirth;
 
-			if (person.Address != null)                                                                                  //"pessoa com um enderço for diferente de nulo" e método dentro dele
-			{                                                                                                          
+			// Os DOIS lados precisam ser checados: person.Address pode não existir no banco,
+			// e request.Address pode não ter vindo no corpo da requisição.
+			if (person.Address != null && request.Address != null)
+			{
 				person.Address.Street = request.Address.Street;
 				person.Address.Number = request.Address.Number;
 				person.Address.Complement = request.Address.Complement;
@@ -112,35 +152,38 @@ namespace Api.Controllers
 				person.Address.Country = request.Address.Country;
 			}
 
-
-			await _repository.UpdateAsync(person);                                                              //resumo: Chamada ao método UpdateAsync do repositório para salvar as alterações da pessoa no banco de dados. O método é assíncrono, permitindo que a operação de atualização seja realizada de forma eficiente sem bloquear o thread principal.
-			var response = MapToResponse(person);                                                               //resumo: Mapeamento do objeto Person atualizado para um DTO de resposta (PersonResponse) utilizando o método MapToResponse. Esse método converte os dados da pessoa atualizada em um formato adequado para ser retornado ao cliente, incluindo os detalhes da pessoa e seu endereço.
-			return Ok(ApiResponse<PersonResponse>.SuccessResponse(response, "Person updated successfully"));    // Retorno do PersonResponse atualizado embrulhado no Response Padronizado (HTTP 200)
-		} 
-
+			await _repository.UpdateAsync(person);
+			var response = MapToResponse(person);
+			return Ok(ApiResponse<PersonResponse>.SuccessResponse(response, "Person updated successfully"));
+		}
 
 
-		[HttpDelete("{id}")] 
-		public async Task<IActionResult> DeletePerson(int id)                                                   //resumo: Método de ação para excluir uma pessoa existente. Ele recebe um parâmetro de rota (id) e retorna um status HTTP indicando o resultado da operação.
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeletePerson(int id)
 		{
-			var person = await _repository.GetByIdAsync(id);                                                    // Não usa ApiResponse pois DELETE retorna HTTP 204 (sem conteúdo/body)
+			var person = await _repository.GetByIdAsync(id);
 			if (person == null)
 			{
-			 return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));                    // // Erro: pessoa não encontrada → HTTP 404 com ApiResponse padronizado
-			}                                                                                                   //"DELETE retorna HTTP 204 (sem conteúdo)! Não precisa de body nem ApiResponse!"
-			await _repository.DeleteAsync(id);                                                              
-			return NoContent();                                                                                 // Sucesso: pessoa deletada → HTTP 204 (sem body, sem ApiResponse)
-		}	
+				 return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));
+			}
+			await _repository.DeleteAsync(id);
+			// 204 é a resposta correta para DELETE bem-sucedido: sem body, logo sem ApiResponse.
+			return NoContent();
+		}
 
-								//DTO de saída (response)
-		private PersonResponse MapToResponse(Person person)                                                     //resumo: Método auxiliar para mapear um objeto Person para um DTO de resposta (PersonResponse). Ele converte os dados da pessoa, incluindo os detalhes do endereço, em um formato adequado para ser retornado ao cliente.
+		// Converte a entidade do banco no DTO de saída, para não expor o modelo interno
+		// (e, com ele, a navegação Person dentro de Address, que causaria ciclo no JSON).
+		private PersonResponse MapToResponse(Person person)
 		{
 			return new PersonResponse
 			{
 				Id = person.Id,
 				Name = person.Name,
 				DateOfBirth = person.DateOfBirth,
-				Address = new AddressResponseDto
+				// Address é anulável desde que o endereço virou o lado dependente.
+				// Sem este teste, uma pessoa sem endereço derrubaria a resposta com
+				// NullReferenceException (500) em vez de devolver "address": null.
+				Address = person.Address == null ? null : new AddressResponseDto
 				{
 					Id = person.Address.Id,
 					Street = person.Address.Street,
