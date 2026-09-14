@@ -1,25 +1,24 @@
 ﻿using System;
-using System.Net;
 using Api.Data;
 using Api.Models;
 using Api.Repositories;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Xunit;
 
 namespace Api.Tests
 {
 	public class PersonRepositoryTests 
 	{
-		//resumo: Método auxiliar para criar um novo contexto de banco de dados em memória para os testes.
+		// Cria um banco SQLite novo em memória para cada teste, garantindo isolamento.
 		private static AppDbContext NewContext()
 		{
-			var conection = new SqliteConnection("DataSource=:memory:");    //cria uma conexão com um banco de dados SQLite em memória
-			conection.Open();   //mantem o banco de dados em memória aberto durante o teste
+			var connection = new SqliteConnection("DataSource=:memory:");
+			// o banco só existe enquanto houver conexão aberta; fechá-la o destrói
+			connection.Open();
 			var options = new DbContextOptionsBuilder<AppDbContext>()
-				.UseSqlite(conection)
+				.UseSqlite(connection)
 				.Options;
 			var context = new AppDbContext(options);
 			context.Database.EnsureCreated();  //garante que o banco de dados em memória seja criado antes do teste
@@ -66,6 +65,7 @@ namespace Api.Tests
 		}
 
 
+
 		//"CreateAsync"(nome do método testado) - "ShouldCreatePerson"(Deve criar pessoa) -
 		//"WhenValidProvided"(Quando os dados válidos são fornecidos)
 		[Fact]
@@ -106,7 +106,7 @@ namespace Api.Tests
 
 
 		[Fact]
-		public async Task UpdateAsync_ShouldUptadePerson_WhenValidDataProvied()
+		public async Task UpdateAsync_ShouldUpdatePerson_WhenValidDataProvided()
 		{
 
 			//"arrange" - primeiro precisa existir uma pessoa(criar antes para atualizar)
@@ -172,17 +172,14 @@ namespace Api.Tests
 			(await context.PersonAddresses.CountAsync()).Should().Be(0);  //verifica se não há mais endereços após a exclusão
 		}
 
-		// "SearchAsync"(nome do método testado) - "ShouldReturnFilteredPersons"(Deve retornar pessoas filtradas) -
-		//"WhenSearchTermProvided"(Quando um termo de pesquisa é fornecido)
-
-
 		[Fact]
 		public async Task SearchAsync_ShouldReturnFilteredPersons_WhenSearchTermProvided()
 		{
-			// "arrange"
+			// "arrange" - Carlos Pereira é o controle negativo: sem alguém que o filtro
+			// precise EXCLUIR, o teste passaria mesmo que o Where fosse removido
 			using var context = NewContext();
 			var repository = new PersonRepository(context);
-			var person = new List<Person>
+			var persons = new List<Person>
 			{
 				new Person
 				{
@@ -215,16 +212,62 @@ namespace Api.Tests
 					}
 				}
 			};
-			context.Persons.AddRange(person); //adiciona as pessoas ao contexto
+			// AddRange marca as entidades; quem grava no banco é o SaveChanges - nesta ordem
+			context.Persons.AddRange(persons);
 			await context.SaveChangesAsync();
 
-			//"act"
-			//vai chamar com o termo "Silva" e a paginação (1ª página, 10 itens por página)
+			//"act" - termo "Silva", 1ª página, 10 itens por página
 			var result = await repository.SearchAsync("Silva", 1, 10);
 
-			// "assert"
-			result.Should().HaveCount(2);  //verifica se o resultado contém exatamente 2 pessoas)
-			result.Should().OnlyContain(person => person.Name.Contains("Silva"));
+			// "assert" - HaveCount garante que nada sobrou; OnlyContain, que nada indevido entrou
+			result.Should().HaveCount(2);
+			result.Should().OnlyContain(p => p.Name.Contains("Silva"));
+		}
+
+
+
+
+		[Fact]
+		public async Task GetAllAsync_ShouldLimitPageSize_WhenPageSizeExceedsMaximum()
+		{
+			// "arrange" - o teto é 100, então preciso de MAIS de 100 registros:
+			// com 10 pessoas o teste passaria com ou sem o limite
+			using var context = NewContext();
+			var repository = new PersonRepository(context);
+
+			var pessoas = Enumerable.Range(1, 105)
+				.Select(i => NovaPessoa($"Pessoa {i}"))
+				.ToList();
+
+			context.Persons.AddRange(pessoas);
+			await context.SaveChangesAsync();
+
+			// "act" - pede muito acima do teto
+			var result = await repository.GetAllAsync(1, 99999);
+
+			// "assert" - o Math.Clamp corta em 100, mesmo havendo 105 no banco
+			result.Should().HaveCount(100);
+		}
+
+
+
+		// Evita repetir o bloco de endereço em cada teste
+		private static Person NovaPessoa(string nome)
+		{
+			return new Person
+			{
+				Name = nome,
+				DateOfBirth = new DateTime(1990, 5, 15),
+				Address = new PersonAddress
+				{
+					Street = "Rua A",
+					Number = "123",
+					Complement = "",
+					City = "São Paulo",
+					State = "SP",
+					Country = "Br"
+				}
+			};
 		}
 	}	
 }
