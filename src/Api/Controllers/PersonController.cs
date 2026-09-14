@@ -19,12 +19,19 @@ namespace Api.Controllers
 	{
 		private readonly IPersonRepository _repository;
 		private readonly IValidator<Person> _validator;
+		private readonly ILogger<PersonsController> _logger;
 
-		// Repositório e validador chegam prontos pela injeção de dependência (Program.cs).
-		public PersonsController(IPersonRepository repository, IValidator<Person> validator)
+		// Repositório, validador e logger chegam prontos pela injeção de dependência
+		// (Program.cs). Construtor único de propósito: um segundo construtor deixaria
+		// o contêiner de DI ambíguo e permitiria instâncias com campos nulos.
+		public PersonsController(
+			IPersonRepository repository,
+			IValidator<Person> validator,
+			ILogger<PersonsController> logger)
 		{
 			_repository = repository;
 			_validator = validator;
+			_logger = logger;
 		}
 
 		// Roda as regras do PersonValidator sobre a entidade e devolve as mensagens de erro
@@ -67,10 +74,12 @@ namespace Api.Controllers
 			var erro = await ValidateAsync(person);
 			if (erro != null)
 			{
+				_logger.LogWarning("Criação recusada pela validação: {Erro}", erro);
 				return BadRequest(ApiResponse<PersonResponse>.ErrorResponse(erro));
 			}
 
 			await _repository.CreateAsync(person);
+			_logger.LogInformation("Pessoa {PersonId} criada", person.Id);
 
 			var response = MapToResponse(person);
 			// CreatedAtAction devolve 201 e inclui no header Location a URL do novo recurso.
@@ -84,6 +93,7 @@ namespace Api.Controllers
 			var person = await _repository.GetByIdAsync(id);
 			if (person == null)
 			{
+				_logger.LogWarning("Pessoa {PersonId} não encontrada", id);
 				return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));
 			}
 			var response = MapToResponse(person);
@@ -167,6 +177,7 @@ namespace Api.Controllers
 				 return NotFound(ApiResponse<PersonResponse>.ErrorResponse("Person not found"));
 			}
 			await _repository.DeleteAsync(id);
+			_logger.LogInformation("Pessoa {PersonId} removida", id);
 			// 204 é a resposta correta para DELETE bem-sucedido: sem body, logo sem ApiResponse.
 			return NoContent();
 		}

@@ -7,6 +7,7 @@ using Api.Response;
 using Api.Validators;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace Api.Tests
@@ -32,8 +33,13 @@ namespace Api.Tests
 			// Configurando o mock para retornar a pessoa sem endereço quando GetByIdAsync for chamado com o ID 1
 			mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(person);
 
-			// criando o controller com o mock do repositório e o validador real
-			var controller = new PersonsController(mockRepository.Object, new PersonValidator());
+			// mock do repositório + validador real. O NullLogger descarta os logs: este
+			// teste não é sobre logging, e ILogger expõe LogWarning como método de
+			// extensão, o que impede verificá-lo com Mock.Verify.
+			var controller = new PersonsController(
+				mockRepository.Object,
+				new PersonValidator(),
+				NullLogger<PersonsController>.Instance);
 
 			// act
 			var result = await controller.GetPersonById(1);
@@ -62,8 +68,13 @@ namespace Api.Tests
 			};
 			mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(person);
 
-			// criando o controller com o mock do repositório e o validador real
-			var controller = new PersonsController(mockRepository.Object, new PersonValidator());
+			// mock do repositório + validador real. O NullLogger descarta os logs: este
+			// teste não é sobre logging, e ILogger expõe LogWarning como método de
+			// extensão, o que impede verificá-lo com Mock.Verify.
+			var controller = new PersonsController(
+				mockRepository.Object,
+				new PersonValidator(),
+				NullLogger<PersonsController>.Instance);
 
 			var request = new UpdatePersonRequest
 			{
