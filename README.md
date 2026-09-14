@@ -1,16 +1,26 @@
-# API de Gerenciamento de Pessoas 
+# API de Gerenciamento de Pessoas
 
 **Status:** 🟢 Concluído  
-**Última Atualização:** 13 de Setembro de 2026  
-**Data de Entrega:** 2 de Junho de 2026
+**Data de Entrega:** 2 de Junho de 2026  
+**Revisão Técnica:** 10 de Setembro de 2026 — Tech Lead, melhorias aplicadas  
+**Última Atualização:** 14 de Setembro de 2026
 
 ---
 
-## 📋 Visão Geral do Projeto
+## 📋 Visão Geral
 
-Uma API Web RESTful construída com **ASP.NET Core 8** para gerenciar pessoas e seus endereços. A API demonstra padrões profissionais de arquitetura de software, boas práticas de código e integração abrangente com banco de dados.
+API Web RESTful em **ASP.NET Core 8** para gerenciar pessoas e seus endereços — CRUD
+completo com paginação, busca e validação, sobre SQL Server.
 
-**Propósito:** Avaliação técnica para validar organização do código, boas práticas, design de API e compreensão do desenvolvedor sobre a implementação.
+O projeto é uma avaliação técnica: o foco está em organização de código, decisões de
+modelagem e confiabilidade dos testes, não em volume de funcionalidades. Ele **não**
+tem autenticação, autorização nem interface visual.
+
+Entregue em **2 de junho de 2026** e revisado em code review pelo **Tech Lead** em
+**10 de setembro de 2026**. A revisão apontou sete problemas — em segurança,
+modelagem de dados e confiabilidade dos testes —, todos corrigidos, cada um com um
+teste de regressão que falha se a correção for revertida. As decisões que vieram
+dessa revisão estão documentadas ao longo deste README, nos pontos onde importam.
 
 ---
 
@@ -18,14 +28,14 @@ Uma API Web RESTful construída com **ASP.NET Core 8** para gerenciar pessoas e 
 
 | Tecnologia | Versão | Propósito |
 |------------|--------|----------|
-| **.NET** | 8.0 | Framework |
-| **ASP.NET Core** | 8.0 | Web API |
-| **Entity Framework Core** | 8.0 | ORM (Mapeamento Relacional de Objetos) |
-| **SQL Server** | 2019+ | Banco de Dados |
-| **Swagger/OpenAPI** | 6.6.2 | Documentação & Testes da API |
-| **C#** | 12 | Linguagem |
-| **xUnit + FluentAssertions** | 2.9.3 / 8.10.0 | Testes automatizados |
-| **EF Core Sqlite** | 8.0 | Banco em memória usado nos testes |
+| **.NET / ASP.NET Core** | 8.0 | Framework e Web API |
+| **Entity Framework Core** | 8.0 | ORM |
+| **SQL Server** | 2019+ | Banco de dados |
+| **FluentValidation** | 12.1.1 | Regras de negócio |
+| **Swagger/OpenAPI** | 6.6.2 | Documentação e testes manuais |
+| **xUnit + FluentAssertions** | 2.9.3 / 8.10.0 | Testes |
+| **Moq** | 4.20.72 | Mock do repositório nos testes de controller |
+| **EF Core Sqlite** | 8.0 | Banco em memória nos testes unitários |
 
 ---
 
@@ -33,42 +43,24 @@ Uma API Web RESTful construída com **ASP.NET Core 8** para gerenciar pessoas e 
 
 ```
 person-management-api/
-├── src/
-│   └── Api/
-│       ├── Controllers/
-│       │   └── PersonController.cs           # Endpoints HTTP (classe PersonsController)
-│       ├── Data/
-│       │   └── AppDbContext.cs               # DbContext e configuração do relacionamento 1:1
-│       ├── DTOs/
-│       │   ├── CreatePersonRequest.cs        # DTO de POST (contém também CreateAddressDto)
-│       │   ├── UpdatePersonRequest.cs        # DTO de PUT (contém também UpdateAddressDto)
-│       │   └── PersonResponse.cs             # DTO de resposta (contém também AddressResponseDto)
-│       ├── Models/
-│       │   ├── Person.cs                     # Entidade Person (principal do relacionamento)
-│       │   └── PersonAddress.cs              # Entidade PersonAddress (dependente, guarda a FK)
-│       ├── Repositories/
-│       │   ├── IPersonRepository.cs          # Interface do repositório (contrato)
-│       │   └── PersonRepository.cs           # Implementação do repositório (acesso a dados)
-│       ├── Response/
-│       │   └── ApiResponse.cs                # Wrapper padrão de resposta da API
-│       ├── Validators/
-│       │   └── PersonValidator.cs            # Regras FluentValidation para Person
-│       ├── Migrations/
-│       │   └── [Arquivos de migration]       # Histórico de schema do banco de dados
-│       ├── Properties/
-│       │   └── launchSettings.json           # Perfis de execução (portas e ambiente)
-│       ├── Program.cs                        # Startup e configuração da aplicação
-│       ├── Api.csproj                        # Arquivo do projeto com referências NuGet
-│       ├── appsettings.json                  # Configurações da aplicação
-│       └── appsettings.Development.json      # Connection string de desenvolvimento
-├── tests/
-│   └── Api.Tests/
-│       ├── PersonRepositoryTests.cs          # Testes do PersonRepository (SQLite in-memory)
-│       └── Api.Tests.csproj                  # Projeto de testes
-├── .vscode/                                  # launch.json e tasks.json (debug no VS Code)
-├── PersonManagement.sln                      # Solução (necessária para F5 no Visual Studio)
-├── .gitignore
-└── README.md                                  # Este arquivo
+├── src/Api/
+│   ├── Controllers/PersonController.cs     # Endpoints (classe PersonsController)
+│   ├── Data/AppDbContext.cs                # DbContext e o relacionamento 1:1
+│   ├── DTOs/                               # Contratos de entrada e saída
+│   ├── Models/                             # Person e PersonAddress
+│   ├── Repositories/                       # IPersonRepository e implementação
+│   ├── Response/ApiResponse.cs             # Envelope padrão das respostas
+│   ├── Validators/PersonValidator.cs       # Regras de negócio
+│   ├── Migrations/                         # Histórico de schema
+│   ├── Properties/launchSettings.json      # Perfis e portas
+│   ├── Program.cs                          # Startup, DI e pipeline
+│   └── appsettings*.json                   # Configuração
+├── tests/Api.Tests/
+│   ├── PersonRepositoryTests.cs            # Unitários (SQLite in-memory)
+│   ├── PersonRepositoryIntegrationTests.cs # Integração (SQL Server real)
+│   └── PersonsControllerTests.cs           # Controller (repositório mockado)
+├── PersonManagement.sln                    # Necessária para F5 no Visual Studio
+└── README.md
 ```
 
 ---
@@ -77,157 +69,106 @@ person-management-api/
 
 ### Pré-requisitos
 
-- **.NET 8 SDK** instalado ([Baixar](https://dotnet.microsoft.com/download/dotnet/8.0))
-- **SQL Server** 2019+ ou **SQL Server Express** ([Baixar](https://www.microsoft.com/pt-br/sql-server/sql-server-editions-express))
+- **.NET 8 SDK** ([Baixar](https://dotnet.microsoft.com/download/dotnet/8.0))
+- **SQL Server** 2019+ ou **SQL Server Express**
 - **Visual Studio 2022** ou **VS Code** com extensão C#
 
-### Instalação
-
-#### 1. Clonar o Repositório
+### 1. Clonar e restaurar
 
 ```bash
 git clone https://github.com/ooliveira-ops/person-management-api.git
 cd person-management-api
-```
-
-#### 2. Restaurar Dependências
-
-```bash
 dotnet restore
 ```
 
-#### 3. Configurar Conexão com o Banco de Dados
+### 2. Configurar a conexão com o banco
 
-⚠️ **Nunca coloque a connection string dentro do `Program.cs`.** O projeto já teve uma senha
-de SQL Server exposta no histórico do Git por causa disso. Desde o commit
-`29771df`, o `Program.cs` apenas lê a configuração:
+⚠️ **Nunca coloque a connection string dentro do `Program.cs`.** O projeto já teve
+uma senha de SQL Server exposta no histórico do Git por causa disso. Desde o commit
+`29771df`, o `Program.cs` apenas lê a configuração.
 
-```csharp
-builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-```
-
-**Configuração padrão (autenticação Windows — sem senha):**
-
-O `src/Api/appsettings.Development.json` já vem com uma connection string que usa
-`Trusted_Connection=True`, ou seja, autentica pelo usuário do Windows e não guarda
-segredo nenhum:
+**Padrão (autenticação Windows, sem senha):** o `src/Api/appsettings.Development.json`
+já traz uma connection string com `Trusted_Connection=True`, que autentica pelo
+usuário do Windows e não guarda segredo:
 
 ```json
 "ConnectionStrings": {
-  "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=PersonManagementApi;Trusted_Connection=True;TrustServerCertificate=True;"
+  "DefaultConnection": "Server=SEU_SERVIDOR\\SUA_INSTANCIA;Database=PersonManagementApi;Trusted_Connection=True;TrustServerCertificate=True;"
 }
 ```
 
-Ajuste o `Server=` se a sua instância tiver outro nome.
+Ajuste o `Server=` para a sua instância — o valor versionado aponta para uma
+instância local do SQL Server Express.
 
-**Se você precisar usar usuário e senha** (login SQL, container, servidor remoto),
-**não** edite o `appsettings.Development.json` — ele é versionado. Use o gerenciador
-de segredos do .NET, que grava fora do repositório:
+**Se precisar de usuário e senha** (login SQL, container, servidor remoto), **não**
+edite o `appsettings.Development.json` — ele é versionado. Use o gerenciador de
+segredos do .NET, que grava fora do repositório:
 
 ```bash
 cd src/Api
 dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=PersonManagementApi;User Id=sa;Password=SUA_SENHA;TrustServerCertificate=true;"
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=SEU_SERVIDOR\SUA_INSTANCIA;Database=PersonManagementApi;User Id=SEU_USUARIO;Password=SUA_SENHA;TrustServerCertificate=true;"
 ```
 
-Alternativa por variável de ambiente (útil em CI/containers):
+User-secrets e variáveis de ambiente sobrescrevem o appsettings sem exigir mudança
+de código.
 
-```bash
-# PowerShell
-$env:ConnectionStrings__DefaultConnection = "Server=...;Password=...;"
-```
-
-O ASP.NET Core resolve a configuração nesta ordem — user-secrets e variáveis de
-ambiente sobrescrevem o appsettings, sem exigir mudança de código.
-
-#### 4. Criar o Banco de Dados e Aplicar Migrações
+### 3. Criar o banco
 
 ```bash
 dotnet ef database update --project src/Api
 ```
 
-Este comando:
-- ✅ Cria o banco de dados `PersonManagementApi`
-- ✅ Cria tabela `Persons`
-- ✅ Cria tabela `PersonAddresses`
-- ✅ Configura relacionamentos e constraints
+### 4. Executar
 
-#### 5. Executar a Aplicação
-
-**Opção A — linha de comando:**
+**Linha de comando:**
 
 ```bash
-dotnet run --project src/Api
+dotnet run --project src/Api --launch-profile http
 ```
 
-**Saída esperada:**
-```
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://localhost:5164
-      https://localhost:7221
-```
+**Visual Studio (com debug):** abra o **`PersonManagement.sln`** — não use "Abrir
+Pasta" —, defina `Api` como projeto de inicialização, escolha o perfil `http` ou
+`https` e pressione **F5**.
 
-**Opção B — Visual Studio (com debug):**
+> **Por que a solução importa:** sem um `.sln`, o Visual Studio ignora o
+> `launchSettings.json`. A aplicação sobe em `Production` (o default quando
+> `ASPNETCORE_ENVIRONMENT` não é definido) na porta `5000`, e como o Swagger está
+> dentro de `if (app.Environment.IsDevelopment())`, `localhost:5000/` devolve **404**.
 
-1. Abra o **`PersonManagement.sln`** na raiz (não use "Abrir Pasta" — veja o porquê abaixo)
-2. Defina **`Api`** como projeto de inicialização
-3. Escolha o perfil **`http`** ou **`https`** no dropdown ao lado do botão de play
-4. **F5**
+### 5. Acessar o Swagger
 
-**Opção C — VS Code (com debug):**
+**http://localhost:5164/swagger** — a raiz (`/`) redireciona para lá, só em Development.
 
-Pressione **F5** e escolha o perfil **"Debug API (http)"**. Ele já define
-`ASPNETCORE_ENVIRONMENT=Development` e `ASPNETCORE_URLS=http://localhost:5164`.
-Há também o perfil **"Attach to process (dotnet run)"** para anexar o debugger a
-uma aplicação já em execução.
-
-> **Por que a solução importa:** abrindo o repositório em modo "abrir pasta", sem
-> um `.sln`, o Visual Studio **ignora o `launchSettings.json`**. A aplicação sobe
-> em `Production` (o default do .NET quando `ASPNETCORE_ENVIRONMENT` não é
-> definido) e na porta `5000` (default do Kestrel). Como o Swagger e o redirect da
-> raiz estão dentro de `if (app.Environment.IsDevelopment())` no `Program.cs`,
-> nenhum dos dois é registrado — e `localhost:5000/` devolve **404**.
-
-<details>
-<summary>Como a solução foi criada (para quem precisar recriá-la)</summary>
-
-O SDK 10.x gera `.slnx` por padrão. Para obter o formato clássico `.sln`,
-compatível com o Visual Studio 2022, é preciso a flag `--format sln`:
-
-```bash
-dotnet new sln -n PersonManagement --format sln
-dotnet sln add src/Api/Api.csproj
-dotnet sln add tests/Api.Tests/Api.Tests.csproj
-```
-</details>
-
-#### 6. Acessar Swagger UI
-
-Abra no navegador: **http://localhost:5164/swagger**
-
-> A raiz (`/`) redireciona para o Swagger — mas só no ambiente **Development**.
-
-#### Portas e perfis
+### Portas e perfis
 
 | Perfil | Portas | Observação |
 |--------|--------|-----------|
-| `http` | `http://localhost:5164` | Loga `warn: Failed to determine the https port for redirect`. É inofensivo: sem porta HTTPS conhecida, o `UseHttpsRedirection` não redireciona e o HTTP passa normalmente. |
-| `https` | `https://localhost:7221` + `http://localhost:5164` | Com HTTPS disponível, a 5164 passa a devolver **307** redirecionando para a 7221. Não é erro — é o `UseHttpsRedirection` funcionando. |
+| `http` | `http://localhost:5164` | Loga `warn: Failed to determine the https port for redirect`. Inofensivo: sem porta HTTPS conhecida, o `UseHttpsRedirection` não redireciona. |
+| `https` | `https://localhost:7221` + `http://localhost:5164` | A 5164 devolve **307** redirecionando para a 7221. Não é erro — é o middleware funcionando. |
 
 ---
 
 ## 📚 Endpoints da API
 
-### 1. Criar uma Nova Pessoa
-**Requisição:**
-```
-POST /api/Persons
-Content-Type: application/json
+Todas as respostas usam o envelope `ApiResponse<T>`:
+
+```json
+{ "success": true, "message": "Operation successful", "data": {} }
 ```
 
-**Body:**
+Em erro, `success` é `false`, `message` traz o motivo e `data` vem `null`.
+
+| Verbo | Rota | Sucesso | Erros |
+|---|---|---|---|
+| POST | `/api/Persons` | `201 Created` | `400` validação |
+| GET | `/api/Persons` | `200 OK` | — |
+| GET | `/api/Persons/{id}` | `200 OK` | `404` não encontrada |
+| PUT | `/api/Persons/{id}` | `200 OK` | `400` validação, `404` não encontrada |
+| DELETE | `/api/Persons/{id}` | `204 No Content` | `404` não encontrada |
+
+### Body de criação e atualização
+
 ```json
 {
   "name": "João Silva",
@@ -243,11 +184,9 @@ Content-Type: application/json
 }
 ```
 
-> O campo `complement` é **opcional** — pode ser omitido ou enviado como `null`.
+O campo `complement` é **opcional** — pode ser omitido ou enviado como `null`.
 
-**Resposta:** `201 Created`
-
-Todas as respostas são embrulhadas no wrapper `ApiResponse<T>`:
+### Resposta completa (exemplo do POST)
 
 ```json
 {
@@ -270,476 +209,272 @@ Todas as respostas são embrulhadas no wrapper `ApiResponse<T>`:
 }
 ```
 
----
+No GET por id, `address` vem `null` se a pessoa não tiver endereço cadastrado.
 
-### 2. Listar Todas as Pessoas (com Paginação)
-**Requisição:**
-```
-GET /api/Persons?page=1&pageSize=10&search=
-```
+### Listagem — parâmetros de query
 
-**Resposta:** `200 OK`
-```json
-{
-  "success": true,
-  "message": "Operation successful",
-  "data": [
-    {
-      "id": 1,
-      "name": "João Silva",
-      "dateOfBirth": "1990-05-15T00:00:00",
-      "address": { /* objeto de endereço */ }
-    }
-  ]
-}
-```
+- `page` (padrão: 1) — valores `< 1` são normalizados para `1`
+- `pageSize` (padrão: 10) — limitado ao intervalo **1 a 100**
+- `search` — busca por nome, cidade ou estado
 
-**Parâmetros de Query:**
-- `page` (opcional, padrão: 1) - Número da página. Valores `< 1` são normalizados para `1`.
-- `pageSize` (opcional, padrão: 10) - Itens por página. Limitado ao intervalo **1 a 100**.
-- `search` (opcional) - Buscar por nome, cidade ou estado
-
-> A normalização da paginação acontece no `PersonRepository`. Sem ela, `page=0`
-> geraria `Skip(-10)` e o SQL Server rejeitaria a consulta com erro 500.
+> A normalização acontece no `PersonRepository`, não no controller, para valer em
+> qualquer chamador. Sem ela, `page=0` geraria `Skip(-10)` e o SQL Server rejeitaria
+> a consulta com erro 500.
 
 ---
 
-### 3. Obter Pessoa por ID
-**Requisição:**
-```
-GET /api/Persons/{id}
-```
-
-**Resposta:** `200 OK`
-```json
-{
-  "success": true,
-  "message": "Operation successful",
-  "data": {
-    "id": 1,
-    "name": "João Silva",
-    "dateOfBirth": "1990-05-15T00:00:00",
-    "address": { /* objeto de endereço, ou null se a pessoa não tiver endereço */ }
-  }
-}
-```
-
-**Resposta de Erro:** `404 Not Found`
-```json
-{
-  "success": false,
-  "message": "Person not found",
-  "data": null
-}
-```
-
----
-
-### 4. Atualizar uma Pessoa
-**Requisição:**
-```
-PUT /api/Persons/{id}
-Content-Type: application/json
-```
-
-**Body:**
-```json
-{
-  "name": "João Silva Santos",
-  "dateOfBirth": "1990-05-15",
-  "address": {
-    "street": "Rua Nova",
-    "number": "456",
-    "complement": "Apt 20",
-    "city": "Rio de Janeiro",
-    "state": "RJ",
-    "country": "Brasil"
-  }
-}
-```
-
-**Resposta:** `200 OK`
-
-**Resposta de Erro:** `400 Bad Request` — mesmas regras do POST (nome com menos de
-3 caracteres, data de nascimento no futuro)
-```json
-{
-  "success": false,
-  "message": "DateOfBirth cannot be in the future",
-  "data": null
-}
-```
-
----
-
-### 5. Deletar uma Pessoa
-**Requisição:**
-```
-DELETE /api/Persons/{id}
-```
-
-**Resposta:** `204 No Content` (sucesso, sem corpo)
-
-**Resposta de Erro:** `404 Not Found`
-
----
-
-## 🏛️ Arquitetura e Padrões de Design
+## 🏛️ Arquitetura e Decisões
 
 ### Repository Pattern
-A aplicação utiliza o **Repository Pattern** para abstrair a lógica de acesso a dados:
 
 ```
-Controller → IPersonRepository (interface) → PersonRepository (implementação) → DbContext → SQL Server
+Controller → IPersonRepository → PersonRepository → DbContext → SQL Server
 ```
 
-**Benefícios:**
-- ✅ Separa lógica de negócio da lógica de acesso a dados
-- ✅ Facilita testes: o controller pode ser testado com um mock de `IPersonRepository`,
-     enquanto o `PersonRepository` é testado contra um banco real
-- ✅ Mais fácil mudar provedores de banco (é o que permite testar em SQLite e rodar em SQL Server)
-- ✅ Centraliza métodos de acesso a dados
+O controller não conhece o banco. Além de separar responsabilidades, é isso que
+permite testar cada camada com a ferramenta certa: o repositório contra um banco
+real, o controller contra um mock da interface.
 
-### Data Transfer Objects (DTOs)
-DTOs são usados em requisições/respostas da API:
-- `CreatePersonRequest` - Body de requisição para POST
-- `UpdatePersonRequest` - Body de requisição para PUT
-- `PersonResponse` - Body de resposta para GET
-- `AddressResponseDto` - Endereço aninhado na resposta
+### Modelos e o relacionamento 1:1
 
-**Benefícios:**
-- ✅ Desacopla contratos da API de modelos de banco de dados
-- ✅ Validação ocorre na camada de API
-- ✅ Segurança (nunca expõe todas as propriedades da entidade)
-
-### Modelos de Entidade
-- `Person` - Entidade **principal**, com Id, Name, DateOfBirth e a navegação `Address`
-- `PersonAddress` - Entidade **dependente**, com Id, `PersonId` (FK), Street, Number,
+- `Person` — lado **principal**: Id, Name, DateOfBirth e a navegação `Address`
+- `PersonAddress` — lado **dependente**: Id, `PersonId` (FK), Street, Number,
   Complement, City, State, Country
-- **Relacionamento:** Um-para-Um. A chave estrangeira fica em `PersonAddress`, porque
-  é o endereço que depende da pessoa — não o contrário. Veja
-  [Schema do Banco de Dados](#-schema-do-banco-de-dados).
 
-### Injeção de Dependência
-Todos os serviços são registrados em `Program.cs`:
-```csharp
-builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+A chave estrangeira fica em `PersonAddress` porque no EF Core quem carrega a FK é o
+dependente — e um endereço só existe se houver uma pessoa. É essa escolha que faz o
+cascade correr na direção certa.
+
+### CORS
+
+Navegadores bloqueiam uma página de ler respostas de outra origem. As origens
+autorizadas ficam em `Cors:AllowedOrigins`, no `appsettings.Development.json`:
+
+```json
+"Cors": {
+  "AllowedOrigins": [ "http://localhost:3000", "http://localhost:5173" ]
+}
 ```
 
-Quando um controller precisa de `IPersonRepository`, o framework automaticamente fornece uma instância de `PersonRepository`.
+Para liberar um frontend novo, adicione a URL dele nessa lista — sem recompilar.
+
+Duas coisas que costumam confundir: **CORS não protege a API** (curl, Postman e
+chamadas de servidor ignoram a regra; só navegadores a aplicam), e a API **responde
+normalmente** mesmo a uma origem não autorizada. O que falta na resposta é o header
+`Access-Control-Allow-Origin` — e é o navegador que recusa a leitura por causa disso.
+
+Para verificar sem um frontend:
+
+```bash
+curl -i -k -H "Origin: http://localhost:3000" https://localhost:7221/api/Persons
+```
+
+O header `Access-Control-Allow-Origin` deve aparecer para origem autorizada e sumir
+para qualquer outra.
+
+### Logging
+
+Usa o `ILogger<T>` nativo do ASP.NET Core, injetado no `PersonsController`. Os logs
+cobrem os caminhos que antes sumiam em silêncio: busca que resulta em 404, validação
+recusada, criação e remoção bem-sucedidas.
+
+As mensagens usam **templates com placeholders nomeados**, não interpolação:
+
+```csharp
+_logger.LogWarning("Pessoa {PersonId} não encontrada", id);
+```
+
+A diferença não é cosmética: com placeholder, o logger recebe o template e o valor
+como campos separados, o que mantém `PersonId` pesquisável quando os logs vão para
+arquivo ou ferramenta de busca. Com `$"..."`, tudo vira texto opaco.
+
+Os níveis ficam em `Logging.LogLevel`, no `appsettings.json`. A categoria de cada log
+é o tipo genérico (`Api.Controllers.PersonsController`), e é por ela que se filtra.
 
 ---
 
-## ✅ Validações Implementadas
+## ✅ Validações
 
 ### Data Annotations (DTOs)
-Aplicadas automaticamente pelo `[ApiController]`, que devolve **400** antes de o
-método do controller executar.
 
-- **Name**: obrigatório + mínimo 3 caracteres
-- **DateOfBirth**: obrigatório
-- **Address**: obrigatório
+Aplicadas pelo `[ApiController]`, que devolve **400** antes de o método executar.
+
+- **Name**: obrigatório, mínimo 3 caracteres
+- **DateOfBirth**, **Address**: obrigatórios
 - **Street, Number, City, State, Country**: obrigatórios
-- **Complement**: opcional (nullable no DTO **e** no banco)
+- **Complement**: opcional, nullable no DTO **e** no banco
 
 ### FluentValidation (PersonValidator)
-Regras de negócio sobre a entidade `Person`, aplicadas **tanto no POST quanto no
-PUT**. O `PersonsController` injeta `IValidator<Person>` e roda as regras antes de
-gravar; se alguma falhar, devolve **400** com as mensagens agregadas no `ApiResponse`.
 
-- **Name**: obrigatório + mínimo 3 caracteres
+Regras de negócio sobre a entidade, aplicadas **no POST e no PUT**. O controller
+injeta `IValidator<Person>` e roda as regras antes de gravar; se alguma falhar,
+devolve 400 com as mensagens agregadas.
+
+- **Name**: obrigatório, mínimo 3 caracteres
 - **DateOfBirth**: não pode ser data futura
 
-O validador é a **fonte única** dessas regras: mudar algo em `PersonValidator.cs`
-passa a valer nos dois endpoints automaticamente. No `PUT`, a validação roda antes
-de a entidade rastreada pelo EF ser alterada, para que uma requisição inválida não
-deixe mudanças pendentes no `DbContext`.
-
-> Antes da centralização, a checagem de data futura era feita à mão dentro do
-> `CreatePerson` e o `PUT` aceitava data de nascimento no futuro.
+O validador é a **fonte única** dessas regras — mudar `PersonValidator.cs` vale nos
+dois endpoints. No PUT, a validação roda antes de a entidade rastreada pelo EF ser
+alterada, para que uma requisição inválida não deixe mudanças pendentes no contexto.
 
 ---
 
 ## 📊 Schema do Banco de Dados
 
-### Tabela Persons
+### Persons
 | Coluna | Tipo | Restrições |
 |--------|------|-----------|
-| Id | INT | Chave Primária, Auto-incremento |
+| Id | INT | PK, auto-incremento |
 | Name | NVARCHAR(MAX) | NOT NULL |
 | DateOfBirth | DATETIME2 | NOT NULL |
 
-### Tabela PersonAddresses
+### PersonAddresses
 | Coluna | Tipo | Restrições |
 |--------|------|-----------|
-| Id | INT | Chave Primária, Auto-incremento |
-| PersonId | INT | **Chave Estrangeira → Persons.Id**, índice único |
-| Street | NVARCHAR(MAX) | NOT NULL |
-| Number | NVARCHAR(MAX) | NOT NULL |
+| Id | INT | PK, auto-incremento |
+| PersonId | INT | **FK → Persons.Id**, índice único |
+| Street, Number, City, State, Country | NVARCHAR(MAX) | NOT NULL |
 | Complement | NVARCHAR(MAX) | **NULL** (opcional) |
-| City | NVARCHAR(MAX) | NOT NULL |
-| State | NVARCHAR(MAX) | NOT NULL |
-| Country | NVARCHAR(MAX) | NOT NULL |
 
-**Relacionamentos:**
-- Person → PersonAddress: Um-para-Um
-- A **FK fica em `PersonAddresses.PersonId`**: o endereço é o lado dependente, a
-  pessoa é o principal.
-- **ON DELETE Cascade**: deletar uma `Person` deleta o `PersonAddress` dela.
-  Deletar um endereço **não** afeta a pessoa.
+**Relacionamento:** um-para-um, com a FK em `PersonAddresses.PersonId`.
+**ON DELETE Cascade:** apagar uma `Person` apaga o endereço dela; apagar um endereço
+**não** afeta a pessoa.
 
-> **Por que isso importa:** até a migration `FixPersonAddressCascadeDelete`, a FK
-> estava invertida (`Persons.AddressId` → `PersonAddresses.Id`). Na prática, o
-> endereço era o principal e o cascade corria ao contrário: apagar um endereço
-> apagava a pessoa. Também era impossível cadastrar uma pessoa sem endereço, já
-> que `AddressId` era obrigatório.
+> **Por que isso importa:** até a migration `FixPersonAddressCascadeDelete` a FK
+> estava invertida (`Persons.AddressId`). O endereço era o principal e o cascade
+> corria ao contrário — apagar um endereço apagava a pessoa. Também era impossível
+> cadastrar alguém sem endereço, já que `AddressId` era obrigatório.
 
-**Migrations aplicadas:**
+**Migrations:**
 
 | Migration | O que faz |
 |-----------|-----------|
-| `InitialCreate` | Cria as tabelas `Persons` e `PersonAddresses` |
+| `InitialCreate` | Cria `Persons` e `PersonAddresses` |
 | `MakeComplementNullable` | Torna `Complement` nullable, alinhando banco e DTO |
 | `FixPersonAddressCascadeDelete` | Move a FK para `PersonAddresses.PersonId` e inverte o cascade |
 
 ---
 
-## 📈 Histórico de Commits
-
-Todos os commits seguem o formato: `type: description`
-
-```
-✅ chore: initialize Web API project with folder structure
-✅ feat: create Person and PersonAddress models
-✅ feat: create AppDbContext with EF Core configuration
-✅ feat: implement repository pattern with PersonRepository
-✅ feat: add DTOs and implement all CRUD endpoints
-✅ feat: configure SQL Server and apply migrations
-✅ feat: add FluentValidation for Person entity
-✅ feat: add unit tests for PersonRepository (5 tests)
-✅ feat: add ApiResponse wrapper and apply to all endpoints
-✅ docs: update README with complete project documentation
-✅ security: remover senha do banco do codigo-fonte
-✅ test: substituir mocks por testes reais com SQLite in-memory
-✅ fix: alinhar nullability de Complement entre DTO e banco
-✅ fix: inverter cascade delete (FK movida para PersonAddress)
-✅ fix: validar paginacao (page minimo 1, pageSize com teto)
-✅ fix: tratar Address nulo no MapToResponse e no UpdatePerson
-✅ fix: centralizar validacao de data futura no PersonValidator
-✅ chore: ignorar bancos locais e arquivos de segredo
-```
-
----
-
-## ✨ O Que Foi Concluído
-
-### Fase 1: Setup do Projeto ✅
-- [x] Modelos (Person, PersonAddress) com relacionamentos
-- [x] Configuração do Entity Framework Core DbContext
-
-### Fase 2: Camada de Acesso a Dados ✅
-- [x] Repository Pattern (IPersonRepository, PersonRepository)
-- [x] Migrações com SQL Server
-- [x] CRUD completo com paginação e busca
-
-### Fase 3: Camada de API ✅
-- [x] 5 endpoints REST implementados
-- [x] DTOs para requisição/resposta
-- [x] Swagger configurado
-
-### Fase 4: Qualidade e Boas Práticas ✅
-- [x] FluentValidation para Person
-- [x] ApiResponse padronizado em todos os endpoints
-- [x] 5 testes do `PersonRepository` (xUnit + FluentAssertions + SQLite in-memory)
-
-### Fase 5: Correções da Code Review ✅
-- [x] Testes reescritos para exercitar o `PersonRepository` real
-- [x] `Complement` nullable no banco, alinhado ao DTO
-- [x] Cascade delete corrigido (FK movida para `PersonAddress`)
-- [x] Paginação validada (`page` mínimo 1, `pageSize` limitado a 100)
-- [x] `Address` nulo tratado no `MapToResponse` e no `UpdatePerson`
-- [x] Validação de data futura centralizada no `PersonValidator` (vale no POST e no PUT)
-- [x] Connection string fora do código-fonte
-- [x] `.gitignore` ajustado (bancos locais e arquivos de segredo)
-
----
-
 ## 🧪 Estratégia de Testes
 
+São **10 testes em três camadas**, cada uma provando uma coisa diferente:
+
+| Arquivo | Testes | Banco | O que prova |
+|---|---|---|---|
+| `PersonRepositoryTests` | 6 | SQLite in-memory | Lógica do repositório: CRUD, busca, teto de `pageSize` |
+| `PersonRepositoryIntegrationTests` | 2 | SQL Server real | Migrations aplicando do zero, cascade real, `page=0` |
+| `PersonsControllerTests` | 2 | nenhum (mock) | Status codes, `Address` nulo, validação de data |
+
+### Rodando
+
 ```bash
-dotnet test
+dotnet test                                                  # tudo
+dotnet test --filter "FullyQualifiedName~IntegrationTests"   # só integração
 ```
 
-Os testes instanciam o **`PersonRepository` real** contra um banco **SQLite
-in-memory**, criado do zero a cada teste:
+### ⚠️ Configuração obrigatória para os testes de integração
 
-```csharp
-var conexao = new SqliteConnection("DataSource=:memory:");
-conexao.Open();   // o banco só existe enquanto houver conexão aberta
-var context = new AppDbContext(options);
-context.Database.EnsureCreated();
+Eles precisam de um SQL Server acessível e de uma connection string própria. **Sem
+isso, 2 testes falham** com `InvalidOperationException`.
+
+```bash
+cd tests/Api.Tests
+dotnet user-secrets set "ConnectionStrings:TestDatabase" "Server=SEU_SERVIDOR\SUA_INSTANCIA;Database=PersonManagementApi_Tests;Trusted_Connection=True;TrustServerCertificate=True;"
 ```
 
-Não há mock do repositório. Um mock só confirmaria que o próprio mock respondeu o
-que foi configurado — a versão anterior destes testes tinha esse problema e passava
-mesmo com o código de produção quebrado.
+Alternativa por variável de ambiente:
 
-**Limites conhecidos desta abordagem:**
+```powershell
+$env:ConnectionStrings__TestDatabase = "Server=SEU_SERVIDOR\SUA_INSTANCIA;Database=PersonManagementApi_Tests;Trusted_Connection=True;TrustServerCertificate=True;"
+```
 
-- **SQLite ≠ SQL Server.** `string.Contains` vira `instr()` (case-sensitive) no
-  SQLite e `LIKE` (case-insensitive) no SQL Server. A busca pode se comportar
-  diferente em produção.
-- **As migrations não são exercitadas.** `EnsureCreated()` gera o schema direto do
-  modelo C# e pula a pasta `Migrations/`. Validar as migrations exige um SQL Server
-  de verdade.
-- **Só a camada de repositório tem cobertura.** Não há testes para o
-  `PersonsController`, para a validação dos DTOs nem para o pipeline HTTP.
+Dois cuidados que o próprio código impõe:
+
+- **O nome do banco precisa terminar em `_Tests`.** Cada teste chama
+  `EnsureDeleted()`, que apaga o banco inteiro antes de recriá-lo — apontar para o
+  banco de desenvolvimento destruiria seus dados. Há uma verificação que recusa
+  qualquer outro nome.
+- **Não há valor padrão no código.** Um default traria de volta a connection string
+  versionada, que é justamente o problema que a review apontou.
+
+### Por que duas camadas de banco
+
+Os testes unitários usam SQLite porque são rápidos e isolados. Mas `EnsureCreated()`
+gera o schema direto do modelo C# e **ignora a pasta `Migrations/`** — então nada ali
+valida as migrations. E os dialetos divergem: `string.Contains` vira `instr()`
+(case-sensitive) no SQLite e `LIKE` (case-insensitive) no SQL Server.
+
+O caso mais instrutivo foi o `page=0`: o SQLite trata `OFFSET` negativo como zero, e
+o teste passava mesmo sem a correção aplicada. Só contra SQL Server ele tem força.
+
+### O que os testes não cobrem
+
+- **Pipeline HTTP completo** — model binding, serialização e o 400 automático do
+  `[ApiController]` não são exercitados; os testes de controller chamam o método
+  diretamente.
+- **CORS e logging** — nenhum teste automatizado; a verificação é manual, conforme
+  descrito nas seções acima.
 
 ---
 
-## 📋 Melhorias Futuras
+## 🧪 Testando a API manualmente
 
-- **Frontend React** - Interface visual para consumir os endpoints da API
-- **Docker** - Containerizar a aplicação junto com o SQL Server
-- **CORS** - Configuração de Cross-Origin Resource Sharing para o frontend
-- **Logging** - Integração com Serilog para rastreamento de erros em produção
+**Swagger UI** (recomendado): rode a aplicação e abra
+http://localhost:5164/swagger — use "Try it out" em qualquer endpoint.
 
----
-
-## 🧪 Testando a API
-
-### Usando Swagger UI (Recomendado)
-1. Execute a aplicação: `dotnet run --project src/Api`
-2. Abra no navegador: http://localhost:5164/swagger
-3. Clique em qualquer endpoint
-4. Clique em "Try it out"
-5. Preencha o body da requisição
-6. Clique em "Execute"
-
-### Usando URL
-```bash
-# Criar uma pessoa
-curl -X POST http://localhost:5164/api/Persons \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Maria Silva",
-    "dateOfBirth": "1995-03-20",
-    "address": {
-      "street": "Rua ABC",
-      "number": "789",
-      "city": "Brasília",
-      "state": "DF",
-      "country": "Brasil"
-    }
-  }'
-
-# Obter todas as pessoas
-curl http://localhost:5164/api/Persons
-
-# Obter pessoa por ID
-curl http://localhost:5164/api/Persons/1
-
-# Atualizar uma pessoa
-curl -X PUT http://localhost:5164/api/Persons/1 \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Maria Santos", ...}'
-
-# Deletar uma pessoa
-curl -X DELETE http://localhost:5164/api/Persons/1
-```
-
-### Usando Postman
-- A variável `{{URL}}` da collection precisa do **esquema correto**: `https://` para
-  a porta **7221**, `http://` para a **5164**. Apontar `http://localhost:7221`
-  resulta em `ECONNREFUSED`.
-- Para HTTPS, desligue *Settings → General → SSL certificate verification* e/ou
-  rode `dotnet dev-certs https --trust`.
+**Postman:** a variável `{{URL}}` precisa do esquema correto — `https://` para a
+porta **7221**, `http://` para a **5164**. Apontar `http://localhost:7221` resulta em
+`ECONNREFUSED`. Para HTTPS, desligue *Settings → General → SSL certificate
+verification* ou rode `dotnet dev-certs https --trust`.
 
 ---
 
 ## 🐛 Solução de Problemas
 
-### Problema: "Não consegue conectar ao banco de dados"
-**Solução:** 
-- Verifique se SQL Server está rodando
-- Confira a connection string em `src/Api/appsettings.Development.json`
-  (**não** em `Program.cs` — ela saiu do código no commit `29771df`)
-- Se estiver usando user-secrets, confira com `dotnet user-secrets list`
-- Execute `dotnet ef database update --project src/Api` para criar o banco
+### 2 testes falham com "Connection string 'TestDatabase' não configurada"
+São os testes de integração. Configure o user-secrets conforme a seção
+[Estratégia de Testes](#-estratégia-de-testes). Para rodar só os unitários enquanto
+isso: `dotnet test --filter "FullyQualifiedName!~IntegrationTests"`.
 
-### Problema: "DateOfBirth não pode ser no futuro"
-**Solução:**
-- Use uma data no passado para DateOfBirth
-- Formato: YYYY-MM-DD
-- Vale para **POST e PUT**: a regra vem do `PersonValidator` e é aplicada nos dois
+### Não consegue conectar ao banco
+- Verifique se o SQL Server está rodando
+- Confira a connection string em `src/Api/appsettings.Development.json` — **não** em
+  `Program.cs`, de onde ela saiu no commit `29771df`
+- Com user-secrets, confira via `dotnet user-secrets list`
+- Rode `dotnet ef database update --project src/Api`
 
-### Problema: "Pessoa não encontrada (404)"
-**Solução:**
-- Verifique se o ID existe no banco de dados
-- Consulte SQL Server Management Studio
+### Swagger devolve 404 e a aplicação subiu na porta 5000
+A aplicação está em `Production` — confirme na primeira linha do log
+(`Hosting environment:`). Swagger e o redirect da raiz só existem em Development.
+Abra o `PersonManagement.sln` em vez de "Abrir Pasta", ou defina
+`$env:ASPNETCORE_ENVIRONMENT = "Development"` antes do `dotnet run`.
 
-### Problema: Swagger devolve 404 e a aplicação subiu na porta 5000
-**Causa:** a aplicação está rodando em `Production`. O Swagger e o redirect da raiz
-só são registrados dentro de `if (app.Environment.IsDevelopment())`.
+### `warn: Failed to determine the https port for redirect`
+Não é erro. Acontece no perfil `http`, que não expõe porta HTTPS: sem destino
+conhecido, o `UseHttpsRedirection` não redireciona e o HTTP passa normalmente.
 
-Confirme na primeira linha do log: `Hosting environment: Production`.
+### A porta 5164 devolve 307
+Não é erro. No perfil `https`, o `UseHttpsRedirection` redireciona para a 7221. Para
+evitar o salto, chame direto `https://localhost:7221`.
 
-**Solução:**
-- Abra o **`PersonManagement.sln`** no Visual Studio em vez de usar "Abrir Pasta" —
-  sem a solução, o `launchSettings.json` é ignorado e nem o ambiente nem a porta
-  são aplicados
-- Ou defina a variável manualmente:
-  ```bash
-  $env:ASPNETCORE_ENVIRONMENT = "Development"
-  dotnet run --project src/Api
-  ```
+### `ECONNREFUSED`
+Nada escutando na porta — aplicação parada ou perfil errado. **Não** é problema de
+certificado.
 
-### Problema: `warn: Failed to determine the https port for redirect`
-**Não é erro.** Acontece no perfil `http`, que não expõe porta HTTPS. Sem uma porta
-de destino conhecida, o `UseHttpsRedirection` simplesmente não redireciona e as
-requisições HTTP seguem normalmente. Para eliminar o aviso, use o perfil `https`.
+### O frontend recebe erro de CORS
+Adicione a origem dele em `Cors:AllowedOrigins`, no `appsettings.Development.json`.
+Lembre que a porta faz parte da origem: `localhost:3000` e `localhost:5173` são
+origens diferentes.
 
-### Problema: a porta 5164 devolve 307 em vez da resposta
-**Não é erro.** No perfil `https`, o `UseHttpsRedirection` redireciona a 5164 para a
-7221. Clientes que seguem redirects (navegador, Postman com *Automatically follow
-redirects* ligado) funcionam normalmente. Para evitar o salto, chame direto
-`https://localhost:7221`.
-
-### Problema: `ECONNREFUSED` no Postman
-**Causa:** não há nada escutando naquela porta. **Não** é problema de certificado.
-
-**Solução:**
-- Confirme que a aplicação está rodando e em qual perfil
-- Verifique o **esquema** da variável `{{URL}}` da collection: `https://` para a
-  **7221**, `http://` para a **5164**. `http://localhost:7221` sempre falha.
-
-### Problema: erro de certificado SSL no Postman
-**Solução:**
-- Desligue *Settings → General → SSL certificate verification*, e/ou
-- Confie no certificado de desenvolvimento: `dotnet dev-certs https --trust`
+### "DateOfBirth não pode ser no futuro"
+Use data no passado, formato `YYYY-MM-DD`. A regra vem do `PersonValidator` e vale
+para POST e PUT.
 
 ---
 
-## 📚 Conceitos-Chave Aprendidos
+## 📋 Melhorias Futuras
 
-1. **Repository Pattern** - Abstração de acesso a dados
-2. **Injeção de Dependência** - Contenedor de DI do ASP.NET Core
-3. **Entity Framework Core** - ORM para operações de banco de dados
-4. **DTOs** - Desacoplamento de contratos de API de entidades
-5. **Async/Await** - Operações de banco de dados não-bloqueantes
-6. **Design de API RESTful** - Métodos HTTP, status codes, nomenclatura de recursos
-7. **Validações** - Data annotations e validadores customizados
-8. **Database Migrations** - Controle de versão para mudanças de schema
-9. **Swagger/OpenAPI** - Documentação e testes de API
-
----
-
-
-## 📄 Licença
-
-Este projeto é para fins educacionais e de avaliação.
-
----
-
-**Última Atualização:** 13 de Setembro de 2026  
-**Status:** 🟢 Concluído
+- **Frontend React** — interface para consumir a API (o CORS já está preparado)
+- **Docker** — containerizar a aplicação junto com o SQL Server
+- **Testes de integração HTTP** — `WebApplicationFactory` para cobrir o pipeline completo
+- **Serilog** — log em arquivo com rotação, sobre as chamadas `ILogger` já existentes
