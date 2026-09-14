@@ -429,6 +429,11 @@ FodyWeavers.xsd
 # VS Code files - local per-developer configuration, not tracked
 .vscode/
 
+# Claude Code - personal working instructions, never committed
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
 # Local History for Visual Studio Code
 .history/
 
@@ -441,3 +446,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Private
+Guia.md
