@@ -25,6 +25,23 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Origens autorizadas a chamar a API pelo navegador. Vêm da configuração para
+// que cada ambiente tenha a sua sem recompilar.
+var origensPermitidas = builder.Configuration
+	.GetSection("Cors:AllowedOrigins")
+	.Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("CorsPolicy", policy =>
+	{
+		policy.WithOrigins(origensPermitidas)
+			.AllowAnyHeader()
+			.AllowAnyMethod();
+	});
+});
+
+
 var app = builder.Build();
 
 // Swagger só existe em Development. Rodando em Production (o default quando
@@ -39,6 +56,11 @@ if (app.Environment.IsDevelopment())
 // No perfil "http" não há porta HTTPS configurada: este middleware apenas registra um
 // aviso e deixa a requisição passar. No perfil "https", redireciona a 5164 para a 7221.
 app.UseHttpsRedirection();
+
+// Precisa vir antes do MapControllers: o middleware responde (OPTIONS)
+// que o navegador envia e adiciona os headers de CORS na resposta. Sem eles, a API
+// ainda responde normalmente — quem recusa a LEITURA da resposta é o navegador.
+app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 
